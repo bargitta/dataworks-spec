@@ -17,7 +17,8 @@ public class AdfCommandAppReaderTest {
                 "-f", "chenxi-df",
                 "-s", "097597a0-5749-49fa-968c-e556a3ea8a76",
                 "-r", "datafactory-rg923",
-                "-o", "../../temp/adf"
+                "-o", "../../temp/adf",
+                "-h", "https://management.chinacloudapi.cn/"
         };
         app.run(args);
     }

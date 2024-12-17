@@ -18,7 +18,7 @@ public class AdfReaderInnerTest {
     @Test
     public void test_export() throws Exception {
         File file = new File("/Users/xichen/Documents/adf");
-        AdfReader reader = new AdfReader(token, id, resrouceGroupName, factory, file);
+        AdfReader reader = new AdfReader(token, id, resrouceGroupName, factory, file, null);
         List<JsonObject> triggers = reader.listTriggers();
         System.out.println(triggers);
         List<JsonObject> pipelines = reader.listPipelines();

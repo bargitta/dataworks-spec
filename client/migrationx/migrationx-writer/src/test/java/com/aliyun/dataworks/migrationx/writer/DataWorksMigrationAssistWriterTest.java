@@ -13,7 +13,7 @@ public class DataWorksMigrationAssistWriterTest {
         String source = String.format("%s/temp/target3.zip", baseDir);
         String[] args = new String[]{
                 //"-e", "dataworks.cn-shenzhen.aliyuncs.com",  //endpoint
-                "-i", "xx",  //accesasdsId
+                "-i", "xx",  //accessId
                 "-k", "xxx",  //accessKey
                 "-r", "cn-shanghai",   //regionId
                 "-p", "483776",   //projectId

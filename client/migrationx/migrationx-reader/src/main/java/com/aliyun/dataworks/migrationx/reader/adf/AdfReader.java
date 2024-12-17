@@ -18,6 +18,9 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.List;
+
+import static com.aliyun.dataworks.migrationx.reader.adf.AdfCommandApp.GLOBAL_HOST;
+
 @Slf4j
 public class AdfReader {
 
@@ -35,13 +38,21 @@ public class AdfReader {
     private final String factory;
     private final File exportFile;
 
-    public AdfReader(String token, String subscriptionId, String resourceGroupName, String factory, File exportFile) {
+    private final String host;
+
+    public AdfReader(String token, String subscriptionId, String resourceGroupName, String factory, File exportFile, String host) {
         this.subscriptionId = subscriptionId;
         this.resourceGroupName = resourceGroupName;
         this.factory = factory;
         this.token = token;
         this.exportFile = exportFile;
+        if(StringUtils.isBlank(host)) {
+            this.host = GLOBAL_HOST;
+        } else {
+            this.host = host;
+        }
     }
+
 
     public File export() throws Exception {
         File parent = new File(exportFile.getParentFile(), StringUtils.split(exportFile.getName(), ".")[0]);
@@ -98,13 +109,13 @@ public class AdfReader {
         File curFactory = new File(factoryDir, this.factory);
         List<JsonObject> pipelines = listTriggers();
         if (CollectionUtils.isNotEmpty(pipelines)) {
-            FileUtils.writeStringToFile(new File(curFactory,  TRIGGER + JSON_SUFFIX), GsonUtils.toJsonString(pipelines), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(new File(curFactory, TRIGGER + JSON_SUFFIX), GsonUtils.toJsonString(pipelines), StandardCharsets.UTF_8);
         }
     }
 
     public List<JsonObject> listPipelines() throws Exception {
         String url = MessageFormat.format(
-                "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
+                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
                         + ".DataFactory/factories/{2}/pipelines?api-version=2018-06-01", this.subscriptionId,
                 this.resourceGroupName, this.factory);
         JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {
@@ -116,18 +127,20 @@ public class AdfReader {
 
     public List<JsonObject> listTriggers() throws Exception {
         String url = MessageFormat.format(
-                "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DataFactory" +
+                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DataFactory" +
                         "/factories/{2}/triggers?api-version=2018-06-01",
                 this.subscriptionId,
                 this.resourceGroupName, this.factory);
-        JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {}.getType());
+        JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {
+        }.getType());
         JsonArray jsonArray = jsonObject.get("value").getAsJsonArray();
-        return GsonUtils.gson.fromJson(jsonArray, new TypeToken<List<JsonObject>>() {}.getType());
+        return GsonUtils.gson.fromJson(jsonArray, new TypeToken<List<JsonObject>>() {
+        }.getType());
     }
 
     public List<JsonObject> listLinkedServices() throws Exception {
         String url = MessageFormat.format(
-                "https://management.azure.com/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
+                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
                         + ".DataFactory/factories/{2}/linkedservices?api-version=2018-06-01",
                 subscriptionId,
                 resourceGroupName, factory);
