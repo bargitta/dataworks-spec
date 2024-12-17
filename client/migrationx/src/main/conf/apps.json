@@ -8,16 +8,31 @@
     },
     "airflow": {
       "appClass": "com.aliyun.dataworks.migrationx.reader.airflow.AirflowCommandApp"
+    },
+    "dolphinscheduler_single_json": {
+      "appClass": "com.aliyun.dataworks.migrationx.reader.dolphinscheduler.DolphinSchedulerSingleJsonReader"
     }
   },
   "transformer": {
     "dolphinscheduler_to_dataworks": {
       "appClass": "com.aliyun.dataworks.migrationx.transformer.dataworks.apps.DataWorksDolphinschedulerTransformerApp"
+    },
+    "dolphinscheduler_to_flowspec": {
+      "appClass": "com.aliyun.dataworks.migrationx.transformer.flowspec.app.DolphinSchedulerV3FlowSpecTransformerApp"
+    },
+    "airflowv2_to_dataworks": {
+      "appClass": "com.aliyun.dataworks.migrationx.transformer.dataworks.apps.DataWorksAirflowV2TransformerApp"
     }
   },
   "writer": {
     "dataworks": {
       "appClass": "com.aliyun.dataworks.migrationx.writer.DataWorksMigrationAssistWriter"
+    },
+    "dataworks_flowspec": {
+      "appClass": "com.aliyun.dataworks.migrationx.writer.dataworks.DataWorksFlowSpecWriter"
+    },
+    "flowspec_to_dataworks": {
+      "appClass": "com.aliyun.dataworks.migrationx.writer.DataWorksMigrationSpecificationImportWriter"
     }
   }
 }

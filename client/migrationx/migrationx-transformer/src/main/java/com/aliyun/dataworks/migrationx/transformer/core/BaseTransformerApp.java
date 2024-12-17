@@ -23,6 +23,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.standard.objects.Package
 import com.aliyun.dataworks.migrationx.transformer.core.checkpoint.file.LocalFileCheckPoint;
 import com.aliyun.dataworks.migrationx.transformer.core.transformer.Transformer;
 import com.aliyun.migrationx.common.context.TransformerContext;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -39,9 +40,9 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseTransformerApp extends CommandApp {
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseTransformerApp.class);
     private static final String EXAMPLE = "python ./migrationx-transformer/bin/transformer.py"
-        + " -a dataworks_transformer"
-        + " -c dataworks-config.json"
-        + " -s project_a.zip -t dw.zip";
+            + " -a dataworks_transformer"
+            + " -c dataworks-config.json"
+            + " -s project_a.zip -t dw.zip";
     private static final String HEADER = "Transformer Command App";
 
     protected final Class<? extends Package> from;
@@ -53,6 +54,7 @@ public abstract class BaseTransformerApp extends CommandApp {
     protected String checkpoint;
 
     protected String load;
+    protected String resourceDir;
 
     public BaseTransformerApp(Class<? extends Package> from, Class<? extends Package> to) {
         this.from = from;
@@ -67,6 +69,7 @@ public abstract class BaseTransformerApp extends CommandApp {
         options.addRequiredOption("t", "targetPackage", true, "target package file path");
         options.addOption("ckpt", "checkpoint", true, "checkpoint dir");
         options.addOption("ld", "load", true, "resume dir");
+        options.addOption("rs", "resource", true, "resource directory");
 
         HelpFormatter helpFormatter = new HelpFormatter();
         try {
@@ -77,6 +80,7 @@ public abstract class BaseTransformerApp extends CommandApp {
             optTargetPackage = commandLine.getOptionValue("t");
             checkpoint = commandLine.getOptionValue("ckpt");
             load = commandLine.getOptionValue("ld");
+            resourceDir = commandLine.getOptionValue("rs");
 
             doTransform();
         } catch (ParseException e) {
@@ -96,6 +100,7 @@ public abstract class BaseTransformerApp extends CommandApp {
         LOGGER.info("start transform from: {}, to: {}", from, to);
         Transformer transformer = createTransformer(new File(optConfig), fromPackage, toPackage);
         initCollector();
+        TransformerContext.getContext().setCustomResourceDir(resourceDir);
         checkAndSetCheckpoint();
         transformer.init();
         transformer.load();
@@ -115,9 +120,9 @@ public abstract class BaseTransformerApp extends CommandApp {
         TransformerContext.getContext().setCheckpoint(checkpoint);
         TransformerContext.getContext().setLoad(load);
         if (TransformerContext.getContext().getCheckpoint() != null
-            && TransformerContext.getContext().getLoad() != null) {
+                && TransformerContext.getContext().getLoad() != null) {
             if (TransformerContext.getContext().getCheckpoint().getCanonicalPath()
-                .equals(TransformerContext.getContext().getLoad().getCanonicalPath())) {
+                    .equals(TransformerContext.getContext().getLoad().getCanonicalPath())) {
                 throw new RuntimeException("checkpoint path can not equals to load path");
             }
         }

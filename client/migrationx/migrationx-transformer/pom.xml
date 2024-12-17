@@ -20,7 +20,7 @@
     <parent>
         <artifactId>migrationx</artifactId>
         <groupId>com.aliyun.dataworks</groupId>
-        <version>1.1.7-4</version>
+        <version>1.1.9-2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -30,6 +30,10 @@
     <name>migrationx-transformer</name>
 
     <dependencies>
+        <dependency>
+            <groupId>com.aliyun.dataworks</groupId>
+            <artifactId>migrationx-domain-adf</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
             <artifactId>migrationx-domain-datago</artifactId>
@@ -45,6 +49,12 @@
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
             <artifactId>migrationx-domain-azkaban</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-reload4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
@@ -57,6 +67,12 @@
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
             <artifactId>migrationx-domain-oozie</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-simple</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
@@ -141,7 +157,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>

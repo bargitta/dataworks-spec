@@ -16,6 +16,7 @@
 package com.aliyun.dataworks.common.spec.domain.ref;
 
 import com.aliyun.dataworks.common.spec.domain.SpecRefEntity;
+import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,6 +31,9 @@ public class SpecRuntimeResource extends SpecRefEntity {
     private String resourceGroupId;
     /**
      * 运行时资源，指定cu数
+     *
+     * @see SpecScriptRuntime#cu
+     * @deprecated
      */
     @Deprecated
     private String cu;

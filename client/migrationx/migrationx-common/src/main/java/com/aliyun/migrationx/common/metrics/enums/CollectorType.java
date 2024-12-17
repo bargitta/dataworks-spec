@@ -16,5 +16,6 @@
 package com.aliyun.migrationx.common.metrics.enums;
 
 public enum CollectorType {
-    DolphinScheduler
+    DolphinScheduler,
+    AzureDataFactory
 }

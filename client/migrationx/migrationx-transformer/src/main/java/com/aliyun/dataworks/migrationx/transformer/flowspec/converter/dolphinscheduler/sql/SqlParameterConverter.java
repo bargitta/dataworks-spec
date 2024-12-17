@@ -54,7 +54,7 @@ public class SqlParameterConverter extends AbstractParameterConverter<SqlParamet
     }
 
     public SqlParameterConverter(DataWorksWorkflowSpec spec, SpecWorkflow specWorkflow, TaskDefinition taskDefinition,
-        DolphinSchedulerV3ConverterContext context) {
+                                 DolphinSchedulerV3ConverterContext context) {
         super(spec, specWorkflow, taskDefinition, context);
     }
 
@@ -93,10 +93,10 @@ public class SqlParameterConverter extends AbstractParameterConverter<SqlParamet
         if (CollectionUtils.isNotEmpty(preSqlList)) {
             for (int i = 0; i < preSqlList.size(); i++) {
                 String sql = preSqlList.get(i);
-                SpecNode preNode = copySpecNode(specNodeRef, sql, "-pre-" + i);
+                SpecNode preNode = copySpecNode(specNodeRef, sql, "_pre_" + i);
                 specNodeList.add(preNode);
                 if (i == 0) {
-                    headList.add(preNode);
+                    headList.add(newWrapper(preNode));
                 }
             }
         }
@@ -104,10 +104,10 @@ public class SqlParameterConverter extends AbstractParameterConverter<SqlParamet
         if (CollectionUtils.isNotEmpty(postSqlList)) {
             for (int i = 0; i < postSqlList.size(); i++) {
                 String sql = postSqlList.get(i);
-                SpecNode postNode = copySpecNode(specNodeRef, sql, "-post-" + i);
+                SpecNode postNode = copySpecNode(specNodeRef, sql, "_post_" + i);
                 specNodeList.add(postNode);
                 if (i == postSqlList.size() - 1) {
-                    tailList.add(postNode);
+                    tailList.add(newWrapper(postNode));
                 }
             }
         }

@@ -18,6 +18,7 @@ package com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1;
 import java.io.File;
 import java.util.List;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
@@ -50,6 +51,11 @@ public interface DolphinSchedulerApi {
      * @throws Exception ex
      */
     Response<List<JsonObject>> queryResourceList(QueryResourceListRequest request) throws Exception;
+
+    default List<JsonElement> queryResourceListByPage(QueryResourceListRequest request, int pageNum, int pageSize)
+            throws Exception {
+        return null;
+    }
 
     /**
      * download resource to local file

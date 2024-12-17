@@ -148,4 +148,6 @@ public class Deployment {
     private Integer limit = Integer.MAX_VALUE;
 
     private Integer deployType;
+
+    private Integer checkingStatus;
 }

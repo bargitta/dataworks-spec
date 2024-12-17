@@ -15,7 +15,10 @@
 
 package com.aliyun.dataworks.common.spec.domain.dw.codemodel;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.aliyun.dataworks.common.spec.utils.GsonUtils;
 import com.google.common.reflect.TypeToken;
@@ -32,18 +35,29 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ToString
 public class EmrAllocationSpec {
+    public static final String UPPER_KEY_USE_GATEWAY = "USE_GATEWAY";
+    public static final String UPPER_KEY_REUSE_SESSION = "REUSE_SESSION";
+    public static final String UPPER_KEY_DATAWORKS_SESSION_DISABLE = "DATAWORKS_SESSION_DISABLE";
+    public static final String UPPER_KEY_FLOW_SKIP_SQL_ANALYZE = "FLOW_SKIP_SQL_ANALYZE";
+    public static final String UPPER_KEY_ENABLE_SPARKSQL_JDBC = "ENABLE_SPARKSQL_JDBC";
+    public static final Set<String> UPPER_KEYS = new HashSet<>(Arrays.asList(
+        UPPER_KEY_USE_GATEWAY, UPPER_KEY_REUSE_SESSION, UPPER_KEY_DATAWORKS_SESSION_DISABLE,
+        UPPER_KEY_ENABLE_SPARKSQL_JDBC, UPPER_KEY_FLOW_SKIP_SQL_ANALYZE));
+
     private String queue;
     private String vcores;
     private String memory;
     private String priority;
     private String userName;
-    @SerializedName("USE_GATEWAY")
+    @SerializedName(UPPER_KEY_USE_GATEWAY)
     private Boolean useGateway;
-    @SerializedName("REUSE_SESSION")
+    @SerializedName(UPPER_KEY_REUSE_SESSION)
     private Boolean reuseSession;
-    @SerializedName("FLOW_SKIP_SQL_ANALYZE")
+    @SerializedName(UPPER_KEY_DATAWORKS_SESSION_DISABLE)
+    private Boolean dataworksSessionDisable;
+    @SerializedName(UPPER_KEY_FLOW_SKIP_SQL_ANALYZE)
     private Boolean batchMode;
-    @SerializedName("ENABLE_SPARKSQL_JDBC")
+    @SerializedName(UPPER_KEY_ENABLE_SPARKSQL_JDBC)
     private Boolean enableJdbcSql;
 
     public static EmrAllocationSpec of(Map<String, Object> allocateSpec) {

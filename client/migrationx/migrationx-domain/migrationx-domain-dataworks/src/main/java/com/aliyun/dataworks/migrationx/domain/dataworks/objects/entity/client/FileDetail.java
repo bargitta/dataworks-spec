@@ -15,11 +15,11 @@
 
 package com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.client;
 
+import java.util.List;
+
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-
-import java.util.List;
 
 /**
  * @author sam.liux
@@ -36,4 +36,5 @@ public class FileDetail {
     private List<FileRelation> relations;
     private String sourceApp;
     private DiFileDsExt diFileDsExt;
+    private ResourceDownloadInfo resourceDownloadLinkDto;
 }

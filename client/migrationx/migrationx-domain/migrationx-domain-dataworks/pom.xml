@@ -20,7 +20,7 @@
     <parent>
         <artifactId>migrationx-domain</artifactId>
         <groupId>com.aliyun.dataworks</groupId>
-        <version>1.1.7-4</version>
+        <version>1.1.9-2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -63,6 +63,11 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>dataworks_public20240518</artifactId>
+            <version>2.0.0</version>
         </dependency>
     </dependencies>
     <build>

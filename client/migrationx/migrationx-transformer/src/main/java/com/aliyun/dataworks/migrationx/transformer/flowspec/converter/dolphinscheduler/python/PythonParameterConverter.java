@@ -40,12 +40,12 @@ public class PythonParameterConverter extends AbstractParameterConverter<PythonP
     private static final String RESOURCE_REFERENCE_PREFIX = "##";
 
     static {
-        RUNTIME.setEngine(CodeProgramType.PYODPS3.getCalcEngineType().getLabel());
-        RUNTIME.setCommand(CodeProgramType.PYODPS3.getName());
+        RUNTIME.setEngine(CodeProgramType.PYTHON.getCalcEngineType().getLabel());
+        RUNTIME.setCommand(CodeProgramType.PYTHON.getName());
     }
 
     public PythonParameterConverter(DataWorksWorkflowSpec spec, SpecWorkflow specWorkflow, TaskDefinition taskDefinition,
-        DolphinSchedulerV3ConverterContext context) {
+                                    DolphinSchedulerV3ConverterContext context) {
         super(spec, specWorkflow, taskDefinition, context);
     }
 
@@ -63,7 +63,6 @@ public class PythonParameterConverter extends AbstractParameterConverter<PythonP
         script.setLanguage(LanguageEnum.PYTHON3.getIdentifier());
         script.setRuntime(RUNTIME);
         if (PythonVersion.PYTHON2.equals(context.getPythonVersion())) {
-            script.getRuntime().setCommand(context.getPythonVersion().getCommand());
             script.setLanguage(LanguageEnum.PYTHON2.getIdentifier());
         }
         script.setPath(getScriptPath(specNode));

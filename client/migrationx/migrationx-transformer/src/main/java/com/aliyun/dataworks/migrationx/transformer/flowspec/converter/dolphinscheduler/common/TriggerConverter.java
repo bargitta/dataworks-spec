@@ -76,7 +76,7 @@ public class TriggerConverter extends AbstractCommonConverter<SpecTrigger> {
         if (Objects.isNull(schedule)) {
             convertRes.setType(TriggerType.MANUAL);
         } else {
-            convertRes.setId(generateUuid((long)schedule.getId()));
+            convertRes.setId(generateUuid(Long.valueOf(schedule.getId())));
             convertRes.setType(TriggerType.SCHEDULER);
             convertRes.setStartTime(DateUtils.convertDateToString(schedule.getStartTime()));
             convertRes.setEndTime(DateUtils.convertDateToString(schedule.getEndTime()));

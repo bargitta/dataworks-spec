@@ -55,6 +55,11 @@ public class SpecScriptRuntime extends SpecNoRefEntity {
      */
     private Map<String, Object> cdhJobConfig;
     /**
+     * ADB job config
+     * <a href="https://aliyuque.antfin.com/dataworks/cxvgny/bviz504be07051t7#dWSDB">ADB Configuration</a>
+     */
+    private Map<String, Object> adbJobConfig;
+    /**
      * spark configurations for emr job
      * <a href="https://spark.apache.org/docs/latest/configuration.html#application-properties">Spark Configuration</a>
      */

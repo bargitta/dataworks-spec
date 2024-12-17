@@ -21,12 +21,15 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
+import com.aliyun.dataworks.common.spec.domain.interfaces.LabelEnum;
 import com.aliyun.dataworks.common.spec.utils.GsonUtils;
 import com.aliyun.dataworks.common.spec.utils.StringTypeObjectAdapter;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.reflect.TypeToken;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
@@ -57,6 +60,51 @@ public class ControllerJoinCode extends AbstractBaseCode implements JsonFormCode
         private String projectIdentifier;
         // 运行状态等于
         private List<String> runStatus;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public enum Status implements LabelEnum {
+
+        /**
+         * 运行失败
+         */
+        FAILURE("Failure", "0"),
+        /**
+         * 运行成功
+         */
+        SUCCESS("Success", "1"),
+        /**
+         * 分支未运行
+         */
+        NOT_RUN("NotRun", "2");
+        private final String label;
+        private final String code;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public enum Logic implements LabelEnum {
+
+        /**
+         * 或
+         */
+        OR("Or", 0),
+        /**
+         * 且
+         */
+        AND("And", 1);
+        private final String label;
+        private final Integer code;
+
+        public static Logic ofCode(Integer code) {
+            for (Logic value : Logic.values()) {
+                if (value.getCode().equals(code)) {
+                    return value;
+                }
+            }
+            return null;
+        }
     }
 
     /**

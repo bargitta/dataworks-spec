@@ -9,12 +9,20 @@
 package com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
+import com.aliyun.dataworks.common.spec.domain.SpecRefEntity;
 import com.aliyun.dataworks.common.spec.domain.Specification;
 import com.aliyun.dataworks.common.spec.domain.enums.SpecKind;
 import com.aliyun.dataworks.common.spec.domain.enums.SpecVersion;
+import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecWorkflow;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.v320.DagDataSchedule;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.FlowSpecConverter;
@@ -22,6 +30,8 @@ import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinsch
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.common.context.DolphinSchedulerV3ConverterContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -47,6 +57,7 @@ public class DolphinSchedulerV3FlowSpecConverter implements FlowSpecConverter<Da
         this.dagDataSchedule = ObjectUtils.defaultIfNull(dagDataSchedule, new DagDataSchedule());
         this.context = ObjectUtils.defaultIfNull(context, new DolphinSchedulerV3ConverterContext());
         specification = new Specification<>();
+        specification.setMetadata(new HashMap<>());
         specification.setSpec(initSpec());
         checkContext();
     }
@@ -90,18 +101,16 @@ public class DolphinSchedulerV3FlowSpecConverter implements FlowSpecConverter<Da
      * @return flowSpec result
      */
     @Override
-    public Specification<DataWorksWorkflowSpec> convert(DagDataSchedule from) {
+    public List<Specification<DataWorksWorkflowSpec>> convert(DagDataSchedule from) {
         // judge process is manual or cycle workflow
         specification.setKind((Objects.isNull(from.getSchedule()) ? SpecKind.MANUAL_WORKFLOW : SpecKind.CYCLE_WORKFLOW).getLabel());
         specification.setVersion(context.getSpecVersion());
 
         // convert single process to workflow and add to spec
         log.info("====== start convert ======,version:{}", specification.getVersion());
-        SpecWorkflow workflow = new WorkflowConverter(from, context).convert();
-        DataWorksWorkflowSpec spec = specification.getSpec();
-        spec.getWorkflows().add(workflow);
+        doConvert(from);
         log.info("====== finish convert ======");
-        return specification;
+        return flattenFlowSpec(specification);
     }
 
     /**
@@ -109,7 +118,98 @@ public class DolphinSchedulerV3FlowSpecConverter implements FlowSpecConverter<Da
      *
      * @return flowSpec result
      */
-    public Specification<DataWorksWorkflowSpec> convert() {
+    public List<Specification<DataWorksWorkflowSpec>> convert() {
         return convert(dagDataSchedule);
+    }
+
+    /**
+     * convert single process to flow spec
+     *
+     * @param from process
+     */
+    private void doConvert(DagDataSchedule from) {
+        DataWorksWorkflowSpec spec = specification.getSpec();
+
+        SpecWorkflow workflow = new WorkflowConverter(from, context).convert();
+        if (CollectionUtils.isEmpty(context.getSubWorkflows())) {
+            // normal case
+            spec.getWorkflows().add(workflow);
+            specification.getMetadata().put("uuid", workflow.getId());
+        } else {
+            // there are sub processes in dag, add sub process in workflows, other nodes are added in nodes
+            spec.getWorkflows().addAll(context.getSubWorkflows());
+            spec.getNodes().addAll(workflow.getNodes());
+            spec.getFlow().addAll(workflow.getDependencies());
+            context.getSubWorkflows().clear();
+        }
+    }
+
+    /**
+     * flatten flow spec when multiple nodes or workflows in a flow spec
+     *
+     * @param specification flow spec
+     * @return flow spec flattened
+     */
+    private List<Specification<DataWorksWorkflowSpec>> flattenFlowSpec(Specification<DataWorksWorkflowSpec> specification) {
+        if (specification == null) {
+            return null;
+        }
+        List<SpecWorkflow> specWorkflows = Optional.ofNullable(specification.getSpec())
+            .map(DataWorksWorkflowSpec::getWorkflows)
+            .orElse(Collections.emptyList());
+        List<SpecNode> specNodes = Optional.ofNullable(specification.getSpec())
+            .map(DataWorksWorkflowSpec::getNodes)
+            .orElse(Collections.emptyList());
+
+        // need not flatten for single workflow
+        if (CollectionUtils.size(specWorkflows) <= 1 && CollectionUtils.isEmpty(specNodes)) {
+            return Collections.singletonList(specification);
+        }
+
+        // flatten workflow
+        List<Specification<DataWorksWorkflowSpec>> flowSpecList = ListUtils.emptyIfNull(specWorkflows).stream()
+            .map(specWorkflow -> {
+                Specification<DataWorksWorkflowSpec> template = new Specification<>();
+                template.setContext(specification.getContext());
+                template.setMetadata(new HashMap<>());
+                template.setVersion(specification.getVersion());
+                template.setKind(specification.getKind());
+
+                template.getMetadata().put("uuid", specWorkflow.getId());
+
+                DataWorksWorkflowSpec spec = new DataWorksWorkflowSpec();
+                template.setSpec(spec);
+                spec.setWorkflows(Collections.singletonList(specWorkflow));
+                return template;
+            })
+            .collect(Collectors.toList());
+
+        // flatten node
+        List<SpecFlowDepend> specFlowDepends = Optional.ofNullable(specification.getSpec()).map(DataWorksWorkflowSpec::getFlow)
+            .orElse(Collections.emptyList());
+        List<Specification<DataWorksWorkflowSpec>> nodeSpecList = ListUtils.emptyIfNull(specNodes).stream()
+            .map(specNode -> {
+                Specification<DataWorksWorkflowSpec> template = new Specification<>();
+                template.setContext(specification.getContext());
+                template.setMetadata(new HashMap<>());
+                template.setVersion(specification.getVersion());
+                template.setKind(SpecKind.NODE.getLabel());
+
+                template.getMetadata().put("uuid", specNode.getId());
+
+                DataWorksWorkflowSpec spec = new DataWorksWorkflowSpec();
+                template.setSpec(spec);
+                spec.setNodes(Collections.singletonList(specNode));
+                List<SpecFlowDepend> specFlowDependsForNode = specFlowDepends.stream()
+                    .filter(specFlowDepend -> Optional.ofNullable(specFlowDepend.getNodeId())
+                        .map(SpecRefEntity::getId)
+                        .filter(id -> id.equals(specNode.getId()))
+                        .isPresent())
+                    .collect(Collectors.toList());
+                spec.setFlow(specFlowDependsForNode);
+                return template;
+            })
+            .collect(Collectors.toList());
+        return ListUtils.union(flowSpecList, nodeSpecList);
     }
 }

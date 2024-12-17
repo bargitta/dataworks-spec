@@ -15,10 +15,7 @@
 
 package com.aliyun.dataworks.common.spec.domain.noref;
 
-import java.util.List;
-
-import com.aliyun.dataworks.common.spec.domain.SpecNoRefEntity;
-import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecWorkflow;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,7 +27,9 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SpecSubFlow extends SpecNoRefEntity {
-    private List<SpecNode> nodes;
-    private List<SpecFlowDepend> dependencies;
+public class SpecSubFlow extends SpecWorkflow {
+    /**
+     * 通过output引用的Flow
+     */
+    private String output;
 }

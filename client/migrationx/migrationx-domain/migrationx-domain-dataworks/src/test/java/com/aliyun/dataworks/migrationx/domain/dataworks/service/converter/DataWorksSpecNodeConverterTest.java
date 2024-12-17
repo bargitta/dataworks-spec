@@ -366,6 +366,51 @@ public class DataWorksSpecNodeConverterTest {
     }
 
     @Test
+    public void testHandleLocalResourceSpec() throws Exception {
+        String specStr = "{\n"
+            + "\t\"version\":\"1.1.0\",\n"
+            + "\t\"kind\":\"CycleWorkflow\",\n"
+            + "\t\"spec\":{\n"
+            + "\t\t\"fileResources\":[\n"
+            + "\t\t\t{\n"
+            + "\t\t\t\t\"name\":\"base_data.py\",\n"
+            + "\t\t\t\t\"id\":\"20413862\",\n"
+            + "\t\t\t\t\"script\":{\n"
+            + "\t\t\t\t\t\"path\":\"旧版工作流/0_gongda/base_data/base_data.py\",\n"
+            + "\t\t\t\t\t\"runtime\":{\n"
+            + "\t\t\t\t\t\t\"command\":\"ODPS_PYTHON\"\n"
+            + "\t\t\t\t\t}\n"
+            + "\t\t\t\t},\n"
+            + "\t\t\t\t\"runtimeResource\":{\n"
+            + "\t\t\t\t\t\"id\":\"7949971363823425918\",\n"
+            + "\t\t\t\t\t\"resourceGroup\":\"group_3138\",\n"
+            + "\t\t\t\t\t\"resourceGroupId\":\"3138\"\n"
+            + "\t\t\t\t},\n"
+            + "\t\t\t\t\"type\":\"python\",\n"
+            + "\t\t\t\t\"file\":{\n"
+            + "\t\t\t\t\t\"storage\":{\n"
+            + "\t\t\t\t\t\t\"type\":\"local\"\n"
+            + "\t\t\t\t\t}\n"
+            + "\t\t\t\t},\n"
+            + "\t\t\t\t\"datasource\":{\n"
+            + "\t\t\t\t\t\"name\":\"odps_first\",\n"
+            + "\t\t\t\t\t\"type\":\"odps\"\n"
+            + "\t\t\t\t},\n"
+            + "\t\t\t\t\"metadata\":{\n"
+            + "\t\t\t\t\t\"owner\":\"028023\"\n"
+            + "\t\t\t\t}\n"
+            + "\t\t\t}\n"
+            + "\t\t]\n"
+            + "\t}\n"
+            + "}";
+        Specification<DataWorksWorkflowSpec> spec = SpecUtil.parseToDomain(specStr);
+        FileDetail result = DataWorksSpecNodeConverter.resourceSpecToFileDetail(spec);
+        Assert.assertNotNull(result);
+        Assert.assertNotNull(result.getFile());
+        Assert.assertNotNull(result.getNodeCfg());
+    }
+
+    @Test
     public void testHandleFunction() throws Exception {
         String specStr = "{\n"
             + "  \"version\":\"1.1.0\",\n"

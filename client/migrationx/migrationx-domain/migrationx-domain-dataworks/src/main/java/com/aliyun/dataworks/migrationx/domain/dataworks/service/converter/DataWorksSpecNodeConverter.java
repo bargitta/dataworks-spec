@@ -178,8 +178,12 @@ public class DataWorksSpecNodeConverter {
                 File dwRes = new File();
                 dwRes.setFileName(specRes.getName());
                 dwRes.setOwner(Optional.ofNullable(specRes.getMetadata()).map(m -> (String)m.get("owner")).orElse(null));
-                String fileName = Optional.ofNullable(specRes.getFile()).filter(SpecLocalFile.class::isInstance).map(f -> (SpecLocalFile)f)
-                    .map(f -> Paths.get(f.getPath()).toFile().getName()).orElse(specRes.getName());
+                String fileName = Optional.ofNullable(specRes.getFile())
+                    .filter(SpecLocalFile.class::isInstance)
+                    .map(f -> (SpecLocalFile)f)
+                    .filter(f -> StringUtils.isNotBlank(f.getPath()))
+                    .map(f -> Paths.get(f.getPath()).toFile().getName())
+                    .orElse(specRes.getName());
                 dwRes.setFileTypeStr(Optional.ofNullable(specRes.getScript()).map(SpecScript::getRuntime).map(SpecScriptRuntime::getCommand)
                     .orElse(null));
                 dwRes.setFileType(getScriptCommandTypeId(specRes.getScript()));

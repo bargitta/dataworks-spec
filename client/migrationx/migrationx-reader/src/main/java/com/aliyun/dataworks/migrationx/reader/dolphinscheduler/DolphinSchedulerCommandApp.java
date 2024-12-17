@@ -19,8 +19,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.aliyun.dataworks.client.command.CommandApp;
+import com.aliyun.migrationx.common.utils.JSONUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -28,8 +31,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +44,15 @@ public class DolphinSchedulerCommandApp extends CommandApp {
     private static final Logger LOGGER = LoggerFactory.getLogger(DolphinSchedulerCommandApp.class);
     private static final String LONG_OPT_SKIP_RESOURCES = "skip-resources";
     private static final String OPT_SKIP_RESOURCES = "sr";
+    private static final String CODE_LABEL = "code";
+    private static final String NAME_LABEL = "name";
 
     @Override
     public void run(String[] args) {
         Options options = getOptions();
-
+        String javaVersion = System.getProperty("java.version");
+        log.info("running with java version: {}", javaVersion);
+        log.info("args: {}", JSONUtils.toJsonString(args));
         HelpFormatter helpFormatter = new HelpFormatter();
         try {
             CommandLineParser parser = new DefaultParser();
@@ -53,16 +60,12 @@ public class DolphinSchedulerCommandApp extends CommandApp {
             String endpoint = commandLine.getOptionValue("e");
             String token = commandLine.getOptionValue("t");
             String version = commandLine.getOptionValue("v");
-            List<String> projects = StringUtils.isBlank(commandLine.getOptionValue("p")) ?
-                new ArrayList<>() : Arrays.asList(StringUtils.split(commandLine.getOptionValue("p"), ","));
-            if (CollectionUtils.isEmpty(projects)) {
-                log.error("dolphinscheduler project not specified");
-                System.exit(-1);
-            }
-
+            String projectStr = commandLine.getOptionValue("p");
+            Pair<List<String>, List<Long>> pair = parseProjects(projectStr);
             String file = commandLine.getOptionValue("f", "output");
+
             DolphinSchedulerReader exporter = new DolphinSchedulerReader(
-                endpoint, token, version, projects, new File(new File(file).getAbsolutePath()));
+                    endpoint, token, version, pair.getLeft(), pair.getRight(), new File(new File(file).getAbsolutePath()));
             String sr = commandLine.getOptionValue(OPT_SKIP_RESOURCES, "true");
             exporter.setSkipResources(Boolean.parseBoolean(sr));
             File exportedFile = exporter.export();
@@ -80,13 +83,31 @@ public class DolphinSchedulerCommandApp extends CommandApp {
     protected Options getOptions() {
         Options options = new Options();
         options.addRequiredOption("e", "endpoint", true,
-            "DolphinScheduler Web API endpoint url, example: http://123.123.123.12:12343");
+                "DolphinScheduler Web API endpoint url, example: http://123.123.123.12:12343");
         options.addRequiredOption("t", "token", true, "DolphinScheduler API token");
         options.addRequiredOption("v", "version", true, "DolphinScheduler version");
         options.addOption("p", "projects", true, "DolphinScheduler project names, example: project_a,project_b,project_c");
         options.addOption("f", "file", true, "Output zip file");
         options.addOption(OPT_SKIP_RESOURCES, LONG_OPT_SKIP_RESOURCES, true, "skip exporting resources");
         return options;
+    }
+
+    private Pair<List<String>, List<Long>> parseProjects(String projectStr) {
+        List<String> projects = new ArrayList<>();
+        List<Long> codes = new ArrayList<>();
+        String[] projectTypes = projectStr.split(":");
+        if (projectTypes.length == 2) {
+            if (CODE_LABEL.equalsIgnoreCase(projectTypes[0])) {
+                String[] codeStr = projectTypes[1].split(",");
+                codes = Arrays.stream(codeStr).map(Long::parseLong).collect(Collectors.toList());
+            } else {
+                String[] codeStr = projectTypes[1].split(",");
+                projects = Arrays.asList(codeStr);
+            }
+        } else {
+            projects = Arrays.asList(StringUtils.split(projectStr, ","));
+        }
+        return Pair.of(projects, codes);
     }
 
     public static void main(String[] args) {

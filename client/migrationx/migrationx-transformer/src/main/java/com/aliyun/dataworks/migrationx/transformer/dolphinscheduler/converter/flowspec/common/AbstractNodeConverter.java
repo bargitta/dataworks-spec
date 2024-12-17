@@ -92,8 +92,8 @@ public abstract class AbstractNodeConverter<P extends AbstractParameters> extend
         result.setName(specNode.getName());
         result.setVersion(Constants.VERSION_FIRST);
         result.setDescription(StringUtils.defaultString(specNode.getDescription()));
-        result.setProjectCode(context.getProjectCode());
-        result.setUserId(context.getUserId());
+        result.setProjectCode(ObjectUtils.defaultIfNull(context.getProjectCode(), 0L));
+        result.setUserId(ObjectUtils.defaultIfNull(context.getUserId(), 1));
 
         setTaskType();
 
@@ -115,13 +115,14 @@ public abstract class AbstractNodeConverter<P extends AbstractParameters> extend
         result.setUserName(null);
         result.setProjectName(null);
         result.setWorkerGroup(StringUtils.defaultString(context.getWorkerGroup(), "default"));
-        result.setEnvironmentCode(context.getEnvironmentCode());
+        result.setEnvironmentCode(ObjectUtils.defaultIfNull(context.getEnvironmentCode(), -1L));
         result.setFailRetryTimes(ObjectUtils.defaultIfNull(specNode.getRerunTimes(), 0));
         // unit conversion, from milliseconds to minutes
         result.setFailRetryInterval((int)Duration.ofMillis(ObjectUtils.defaultIfNull(specNode.getRerunInterval(), 0)).toMinutes());
         result.setTimeoutFlag(TimeoutFlag.CLOSE);
         result.setTimeoutNotifyStrategy(null);
         result.setTimeout(ObjectUtils.defaultIfNull(specNode.getTimeout(), 0));
+        // unit conversion, from second to minutes. round up to an integer
         result.setDelayTime(Optional.ofNullable(specNode.getTrigger()).map(SpecTrigger::getDelaySeconds)
             .map(delaySeconds -> (delaySeconds + 59) / 60).orElse(0));
         result.setResourceIds(null);

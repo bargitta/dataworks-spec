@@ -35,7 +35,11 @@ public enum TriggerType implements LabelEnum {
     /**
      * Streaming Trigger
      */
-    STREAMING("Streaming");
+    STREAMING("Streaming"),
+    /**
+     * No trigger
+     */
+    NONE("None");
 
     private final String label;
 

@@ -46,6 +46,7 @@ public class SpecForEachWriter extends DefaultJsonObjectWriter<SpecForEach> {
         DataWorksWorkflowSpecWriter writer = (DataWorksWorkflowSpecWriter)WriterFactory.getWriter(DataWorksWorkflowSpec.class, context);
         JSONObject json = writer.write(constructedSpec, context);
         json.put(SpecForEachParser.ARRAY, writeByWriter(specObj.getArray()));
+        json.put("maxIterations", specObj.getMaxIterations());
         return json;
     }
 }

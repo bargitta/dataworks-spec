@@ -33,6 +33,7 @@ import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * Desc:
@@ -47,7 +48,7 @@ public class ProcessTaskRelationListConverter extends AbstractCommonConverter<Li
     private final SpecWorkflow workflow;
 
     public ProcessTaskRelationListConverter(DataWorksWorkflowSpec spec, SpecWorkflow workflow, List<ProcessTaskRelation> result,
-        FlowSpecConverterContext context) {
+                                            FlowSpecConverterContext context) {
         super(Objects.nonNull(result) ? result : new ArrayList<>(), context);
         this.spec = spec;
         this.workflow = workflow;
@@ -112,14 +113,10 @@ public class ProcessTaskRelationListConverter extends AbstractCommonConverter<Li
         processTaskRelation.setId(generateId(null));
         processTaskRelation.setName("");
         processTaskRelation.setProcessDefinitionVersion(Constants.VERSION_FIRST);
-        processTaskRelation.setProjectCode(context.getProjectCode());
+        processTaskRelation.setProjectCode(ObjectUtils.defaultIfNull(context.getProjectCode(), 0L));
         processTaskRelation.setProcessDefinitionCode(processDefinitionCode);
         processTaskRelation.setPreTaskCode(preNodeCode);
-        if (preNodeCode == 0L) {
-            processTaskRelation.setPreTaskVersion(0);
-        } else {
-            processTaskRelation.setPreTaskVersion(Constants.VERSION_FIRST);
-        }
+        processTaskRelation.setPreTaskVersion(preNodeCode == 0L ? 0 : Constants.VERSION_FIRST);
         processTaskRelation.setPostTaskCode(postNodeCode);
         processTaskRelation.setPostTaskVersion(Constants.VERSION_FIRST);
         processTaskRelation.setConditionType(ConditionType.NONE);

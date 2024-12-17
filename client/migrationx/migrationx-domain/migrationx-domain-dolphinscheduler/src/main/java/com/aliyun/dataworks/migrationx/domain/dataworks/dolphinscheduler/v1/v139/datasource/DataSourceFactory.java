@@ -36,6 +36,9 @@ public class DataSourceFactory {
      */
     public static BaseDataSource getDatasource(String dbType, String parameter) {
         DbType type = DbType.ofType(dbType);
+        if (type == null) {
+            return null;
+        }
         try {
             switch (type) {
                 case MYSQL:

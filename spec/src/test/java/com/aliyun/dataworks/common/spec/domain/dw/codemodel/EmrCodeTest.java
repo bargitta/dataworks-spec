@@ -16,6 +16,7 @@
 package com.aliyun.dataworks.common.spec.domain.dw.codemodel;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
@@ -118,5 +119,20 @@ public class EmrCodeTest {
         CodeModel<EmrCode> emr = CodeModelFactory.getCodeModel("EMR_HIVE", originalCode);
         System.out.println(emr.getContent());
         Assert.assertTrue(StringUtils.indexOf(emr.getContent(), "http://xx.yy.com?aaa=vvv") > 0);
+    }
+
+    @Test
+    public void testEmrCodeParseByContentWithNumberProperties() {
+        EmrCode code = new EmrCode();
+        EmrProperty prop = new EmrProperty();
+        EmrLauncher launcher = new EmrLauncher();
+        java.util.Map<String, Object> spec = new HashMap<>();
+        spec.put("spark.driver.cores", 4);
+        spec.put("spark.driver.boolean", true);
+        spec.put("spark.driver.memory", "4g");
+        launcher.setAllocationSpec(spec);
+        code.setLauncher(launcher);
+        code.setProperties(prop);
+        System.out.println(code.getContent());
     }
 }

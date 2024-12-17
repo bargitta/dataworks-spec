@@ -26,10 +26,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.CodeModeTy
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.DmObjectType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.NodeUseType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.RerunMode;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlCData;
@@ -44,9 +41,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @ToString(callSuper = true, exclude = {"code"})
-@JsonTypeInfo(
-        use = Id.MINIMAL_CLASS,
-        property = "@class")
 public class Node extends DmObject {
     @JacksonXmlProperty(isAttribute = true, localName = "name")
     private String name;
@@ -281,6 +275,15 @@ public class Node extends DmObject {
     @JacksonXmlProperty(localName = "Extend")
     private transient String extend;
 
+    @JacksonXmlProperty(isAttribute = true, localName = "calendarId")
+    private Long calendarId;
+
+    @JacksonXmlProperty(isAttribute = true, localName = "imageId")
+    private String imageId;
+
+    @JacksonXmlProperty(isAttribute = true, localName = "cu")
+    private String cu;
+
     public Node() {
         super(DmObjectType.NODE);
     }
@@ -359,9 +362,9 @@ public class Node extends DmObject {
 
     public String getCodeMode() {
         return Arrays.stream(CodeModeType.values())
-                .filter(t -> t.name().equals(codeMode) || StringUtils.equals(t.getValue(), codeMode))
-                .map(CodeModeType::getValue)
-                .findFirst().orElse(codeMode);
+            .filter(t -> t.name().equals(codeMode) || StringUtils.equals(t.getValue(), codeMode))
+            .map(CodeModeType::getValue)
+            .findFirst().orElse(codeMode);
     }
 
     public void setCodeMode(String codeMode) {
@@ -640,6 +643,33 @@ public class Node extends DmObject {
 
     public Node setAdvanceSettings(String advanceSettings) {
         this.advanceSettings = advanceSettings;
+        return this;
+    }
+
+    public Long getCalendarId() {
+        return calendarId;
+    }
+
+    public Node setCalendarId(Long calendarId) {
+        this.calendarId = calendarId;
+        return this;
+    }
+
+    public String getImageId() {
+        return imageId;
+    }
+
+    public Node setImageId(String imageId) {
+        this.imageId = imageId;
+        return this;
+    }
+
+    public String getCu() {
+        return cu;
+    }
+
+    public Node setCu(String cu) {
+        this.cu = cu;
         return this;
     }
 }

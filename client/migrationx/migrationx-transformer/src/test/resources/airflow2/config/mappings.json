@@ -1,0 +1,25 @@
+{
+  "workflowPathPrefix": "AirWorksDemo/v2_2_4/20241120/",
+  "typeMapping": {
+    "EmptyOperator": "VIRTUAL",
+    "DummyOperator": "VIRTUAL",
+    "ExternalTaskSensor": "VIRTUAL",
+    "BashOperator": "SSH",
+    "HiveToMySqlTransfer": "DI",
+    "PrestoToMySqlTransfer": "DI",
+    "PythonOperator": "PYODPS3",
+    "BranchPythonOperator": "CONTROLLER_BRANCH",
+    "HiveOperator": "ODPS_SQL",
+    "SqoopOperator": "EMR_SQOOP",
+    "SparkSqlOperator": "EMR_SPARK_SQL",
+    "SparkSubmitOperator": "EMR_SPARK",
+    "SQLExecuteQueryOperator": "MySQL",
+    "PostgresOperator": "Postgresql",
+    "MySqlOperator": "MySQL",
+    "default": "PYTHON"
+  },
+  "settings": {
+    "workflow.converter.target.schedule.resGroupIdentifier": "Serverless_res_group_524257424564736_674524206094912",
+    "bashoperator.content.adaptive.conversion": "true"
+  }
+}

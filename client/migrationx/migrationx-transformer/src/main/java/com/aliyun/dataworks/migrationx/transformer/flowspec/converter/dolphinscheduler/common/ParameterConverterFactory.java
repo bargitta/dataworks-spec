@@ -8,6 +8,10 @@
 
 package com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.common;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
@@ -16,9 +20,9 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enum
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.parameters.AbstractParameters;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.common.context.DolphinSchedulerV3ConverterContext;
-import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.logic.ConditionsParameterConverter;
-import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.logic.DependentParameterConverter;
-import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.logic.SubProcessParameterConverter;
+import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.logic.condition.ConditionsParameterConverter;
+import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.logic.dependent.DependentParameterConverter;
+import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.logic.subprocess.SubProcessParameterConverter;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.mr.MapReduceParameterConverter;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.python.PythonParameterConverter;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.shell.ShellParameterConverter;
@@ -27,6 +31,7 @@ import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinsch
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.sqoop.SqoopParameterConverter;
 import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Desc:
@@ -34,8 +39,13 @@ import com.aliyun.migrationx.common.exception.ErrorCode;
  * @author 莫泣
  * @date 2024-06-05
  */
+@Slf4j
 @SuppressWarnings("unchecked")
 public class ParameterConverterFactory {
+
+    private ParameterConverterFactory() {
+
+    }
 
     /**
      * create task converter
@@ -45,9 +55,17 @@ public class ParameterConverterFactory {
      * @param taskDefinition taskDefinition
      * @return a converter to convert task
      */
-    public static <P extends AbstractParameters> AbstractParameterConverter<P> create(DataWorksWorkflowSpec spec
-        , SpecWorkflow specWorkflow, TaskDefinition taskDefinition, DolphinSchedulerV3ConverterContext context) {
-        TaskType taskType = TaskType.valueOf(taskDefinition.getTaskType());
+    public static <P extends AbstractParameters> AbstractParameterConverter<P> create(DataWorksWorkflowSpec spec,
+                                                                                      SpecWorkflow specWorkflow,
+                                                                                      TaskDefinition taskDefinition,
+                                                                                      DolphinSchedulerV3ConverterContext context) {
+        TaskType taskType = TaskType.of(taskDefinition.getTaskType());
+        // try to find converter from context, user may override default converter for some type by config
+        AbstractParameterConverter<AbstractParameters> converter = createFromContext(spec, specWorkflow, taskDefinition, taskType, context);
+        if (converter != null) {
+            return (AbstractParameterConverter<P>)converter;
+        }
+        // create default converter by task type
         return (AbstractParameterConverter<P>)Optional.of(taskType).map(type -> {
             switch (taskType) {
                 case SQL:
@@ -74,7 +92,37 @@ public class ParameterConverterFactory {
         }).orElseThrow(() -> new BizException(ErrorCode.PARAMETER_NOT_SET, "taskDefinition.taskType"));
     }
 
-    private ParameterConverterFactory() {
+    private static <P extends AbstractParameters> AbstractParameterConverter<P> createFromContext(DataWorksWorkflowSpec spec,
+                                                                                                  SpecWorkflow specWorkflow,
+                                                                                                  TaskDefinition taskDefinition,
+                                                                                                  TaskType taskType,
+                                                                                                  DolphinSchedulerV3ConverterContext context) {
+        if (taskType == null) {
+            log.warn("task type is null, taskDefinition: {}", taskDefinition);
+            return null;
+        }
 
+        // find converter class name from node type map in context, user may override default converter for some task type
+        Map<String, String> nodeTypeMap = Optional.ofNullable(context).map(DolphinSchedulerV3ConverterContext::getNodeTypeMap).orElse(
+            Collections.emptyMap());
+        String converterClassName = nodeTypeMap.get(taskType.name());
+        if (converterClassName == null) {
+            return null;
+        }
+
+        // use reflection to create instance
+        try {
+            Class<?> clazz = Class.forName(converterClassName);
+            Constructor<?> declaredConstructor = clazz.getDeclaredConstructor(DataWorksWorkflowSpec.class, SpecWorkflow.class, TaskDefinition.class,
+                DolphinSchedulerV3ConverterContext.class);
+            return (AbstractParameterConverter<P>)declaredConstructor.newInstance(spec, specWorkflow, taskDefinition, context);
+        } catch (ClassNotFoundException e) {
+            log.warn("class not found: {}", converterClassName, e);
+        } catch (NoSuchMethodException e) {
+            log.warn("construct method not found: {}", converterClassName, e);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            log.warn("error found when new instance, {}", converterClassName, e);
+        }
+        return null;
     }
 }

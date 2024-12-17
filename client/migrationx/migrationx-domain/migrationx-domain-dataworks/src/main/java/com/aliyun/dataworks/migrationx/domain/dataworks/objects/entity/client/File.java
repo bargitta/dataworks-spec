@@ -15,11 +15,11 @@
 
 package com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.client;
 
+import java.util.Date;
+
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-
-import java.util.Date;
 
 /**
  * @author sam.liux
@@ -85,4 +85,6 @@ public class File {
     private Integer useType;
     private String workspaceUrl;
     private Boolean ignoreLock;
+
+    private String advanceSettings;
 }

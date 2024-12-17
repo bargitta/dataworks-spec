@@ -31,6 +31,6 @@ import java.io.File;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 public class Package extends Entity {
-    private File packageFile;
-    private File packageRoot;
+    protected File packageFile;
+    protected File packageRoot;
 }

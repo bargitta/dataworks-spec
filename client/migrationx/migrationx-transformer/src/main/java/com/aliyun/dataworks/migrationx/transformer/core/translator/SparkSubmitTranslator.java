@@ -245,5 +245,4 @@ public class SparkSubmitTranslator implements Reportable, NodePropertyTranslator
             throw new BizException(ErrorCode.TRANSLATE_NODE_ERROR, e);
         }
     }
-
 }

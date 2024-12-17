@@ -52,7 +52,9 @@ public enum TaskType {
     WATERDROP(13, "WATERDROP"),
     SWITCH(14, "SWITCH"),
     PIGEON(15, "PIGEON"),
-    HIVECLI(16, "HIVECLI");
+    HIVECLI(16, "HIVECLI"),
+    //minimax
+    DLC(17, "DLC");
 
     TaskType(int code, String desc) {
         this.code = code;

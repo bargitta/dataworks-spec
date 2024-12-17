@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.alibaba.fastjson2.JSONObject;
+
 import com.aliyun.dataworks.common.spec.SpecUtil;
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
 import com.aliyun.dataworks.common.spec.domain.Specification;
@@ -360,6 +362,12 @@ public class DataWorksNodeCodeAdapterTest {
         Assert.assertNotNull(cm.getCodeModel());
         Assert.assertNotNull(cm.getCodeModel().getLauncher());
         Assert.assertNotNull(cm.getCodeModel().getLauncher().getAllocationSpec());
+
+        System.out.println(adapter.getCode());
+        JSONObject codeJson = JSONObject.parseObject(adapter.getCode());
+        JSONObject allocateSpec = (JSONObject)codeJson.getByPath("$.launcher.allocationSpec");
+        Assert.assertNotNull(allocateSpec);
+        Assert.assertFalse(allocateSpec.getBooleanValue("FLOW_SKIP_SQL_ANALYZE"));
 
         EmrAllocationSpec allSpec = EmrAllocationSpec.of(cm.getCodeModel().getLauncher().getAllocationSpec());
         Assert.assertNotNull(allSpec);

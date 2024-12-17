@@ -101,7 +101,7 @@ public class WorkflowConverter extends AbstractCommonConverter<SpecWorkflow> {
 
     protected void convertProcess(ProcessDefinition processDefinition, SpecWorkflow specWorkflow, DolphinSchedulerV3ConverterContext context) {
         log.info("convert workflow,processDefinition: {}", dagDataSchedule.getProcessDefinition());
-        specWorkflow.setId(generateUuid(processDefinition.getCode()));
+        specWorkflow.setId(generateUuid(processDefinition.getCode(), specWorkflow));
         specWorkflow.setName(processDefinition.getName());
         specWorkflow.setDescription(processDefinition.getDescription());
 
@@ -119,7 +119,7 @@ public class WorkflowConverter extends AbstractCommonConverter<SpecWorkflow> {
     }
 
     protected void convertTrigger(Schedule schedule, SpecWorkflow specWorkflow, ProcessDefinition processDefinition, SpecScript script,
-        DolphinSchedulerV3ConverterContext context) {
+                                  DolphinSchedulerV3ConverterContext context) {
         if (Objects.nonNull(dagDataSchedule.getSchedule())) {
             SpecTrigger trigger = new TriggerConverter(schedule, context).convert();
             specWorkflow.setTrigger(trigger);
@@ -130,13 +130,13 @@ public class WorkflowConverter extends AbstractCommonConverter<SpecWorkflow> {
     }
 
     protected void convertTaskDefinitions(List<TaskDefinition> taskDefinitions, SpecWorkflow specWorkflow,
-        DolphinSchedulerV3ConverterContext context) {
+                                          DolphinSchedulerV3ConverterContext context) {
         log.info("convert workflow,taskDefinitionList: {}", taskDefinitions);
         new SpecNodeListConverter(null, specWorkflow, taskDefinitions, context).convert();
     }
 
     protected void convertTaskRelations(List<ProcessTaskRelation> processTaskRelationList, SpecWorkflow specWorkflow,
-        DolphinSchedulerV3ConverterContext context) {
+                                        DolphinSchedulerV3ConverterContext context) {
         log.info("convert workflow,processTaskRelationList: {}", processTaskRelationList);
         new SpecFlowDependConverter(null, specWorkflow, processTaskRelationList, context).convert();
     }

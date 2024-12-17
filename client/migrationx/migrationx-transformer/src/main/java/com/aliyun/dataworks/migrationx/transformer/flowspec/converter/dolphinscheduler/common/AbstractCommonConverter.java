@@ -9,11 +9,16 @@
 package com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.common;
 
 import java.util.ArrayList;
+import java.util.Objects;
+import java.util.function.Function;
 
+import com.aliyun.dataworks.common.spec.domain.SpecRefEntity;
 import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.enums.Priority;
-import com.aliyun.dataworks.migrationx.transformer.core.utils.UuidUtils;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.common.context.DolphinSchedulerV3ConverterContext;
+import com.aliyun.dataworks.migrationx.transformer.flowspec.model.SpecRefEntityWrapper;
+import com.aliyun.migrationx.common.utils.UuidUtils;
+import org.apache.commons.lang3.BooleanUtils;
 
 /**
  * Desc:
@@ -26,8 +31,15 @@ public abstract class AbstractCommonConverter<T> {
 
     protected final DolphinSchedulerV3ConverterContext context;
 
+    private final Function<Long, String> generateUuidFunc;
+
     protected AbstractCommonConverter(DolphinSchedulerV3ConverterContext context) {
         this.context = context;
+        if (BooleanUtils.isTrue(context.getDirectMappingId())) {
+            generateUuidFunc = String::valueOf;
+        } else {
+            generateUuidFunc = code -> UuidUtils.genUuidWithoutHorizontalLine();
+        }
     }
 
     /**
@@ -55,8 +67,28 @@ public abstract class AbstractCommonConverter<T> {
      * @return uuid
      */
     protected String generateUuid(Long code) {
-        context.getCodeUuidMap().computeIfAbsent(code, k -> UuidUtils.genUuidWithoutHorizontalLine());
+        if (Objects.isNull(code)) {
+            return generateUuid();
+        }
+        context.getCodeUuidMap().computeIfAbsent(code, generateUuidFunc);
         return context.getCodeUuidMap().get(code);
+    }
+
+    /**
+     * generate uuid and save mapping between code and uuid in context.
+     * it will be used in build dependencies
+     *
+     * @param code   dolphinScheduler entity code
+     * @param entity flow spec entity
+     * @return uuid
+     */
+    protected String generateUuid(Long code, SpecRefEntity entity) {
+        String uuid = generateUuid(code);
+        if (Objects.nonNull(entity)) {
+            entity.setId(uuid);
+            context.getSpecRefEntityMap().put(uuid, newWrapper(entity));
+        }
+        return uuid;
     }
 
     /**
@@ -64,6 +96,10 @@ public abstract class AbstractCommonConverter<T> {
      *
      * @return uuid
      */
+    protected String generateUuid(SpecRefEntity specRefEntity) {
+        return generateUuid(null, specRefEntity);
+    }
+
     protected String generateUuid() {
         String uuid = UuidUtils.genUuidWithoutHorizontalLine();
         context.getCodeUuidMap().putIfAbsent(Long.valueOf(uuid), uuid);
@@ -74,5 +110,9 @@ public abstract class AbstractCommonConverter<T> {
         SpecFlowDepend specFlowDepend = new SpecFlowDepend();
         specFlowDepend.setDepends(new ArrayList<>());
         return specFlowDepend;
+    }
+
+    protected SpecRefEntityWrapper newWrapper(SpecRefEntity entity) {
+        return new SpecRefEntityWrapper().setSpecRefEntity(entity);
     }
 }

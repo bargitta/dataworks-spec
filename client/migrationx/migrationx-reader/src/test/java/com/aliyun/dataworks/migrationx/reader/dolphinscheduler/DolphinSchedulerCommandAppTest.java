@@ -10,7 +10,7 @@ public class DolphinSchedulerCommandAppTest {
         DolphinSchedulerCommandApp app = new DolphinSchedulerCommandApp();
         String[] args = new String[]{
                 "-e", "http://8.152.5.70:12345/",
-                "-t", "37fc0fd51131cdba974879d1bf90da78",
+                "-t", "37fc0fd51131cdba974879d1bf9x0da78",
                 "-v", "1.3.5",
                 "-p", "test1234",
                 "-f", "../../temp/13"
@@ -23,10 +23,10 @@ public class DolphinSchedulerCommandAppTest {
         DolphinSchedulerCommandApp app = new DolphinSchedulerCommandApp();
         String[] args = new String[]{
                 "-e", "http://101.200.34.168:12345",
-                "-t", "dbdab854de9695fb3bd2efa30f59d8d0",
+                "-t", "dbdab854de9695fb3bd2efax30f59d8d0",
                 "-v", "2.0.5",
                 "-p", "proj1",
-                "-f", "../../temp/13666515015680"
+                "-f", "temp/13666515015680"
         };
         app.run(args);
     }
@@ -35,12 +35,24 @@ public class DolphinSchedulerCommandAppTest {
     public void testReader3x() {
         DolphinSchedulerCommandApp app = new DolphinSchedulerCommandApp();
         String[] args = new String[]{
-                "-e", "http://123.57.6.54:12345",
-                "-t", "75b2fe52b9b121e94ac20ee672d7bb4c",
-                "-v", "3.2.0",
-                "-p", "ff,wl_dolphin3",
-                "-sr", "true",
-                "-f", "../../temp/13942964612128"
+                "-e", "http://39.106.89.151:12345/",
+                "-t", "xx",
+                "-v", "3.1.5",
+                "-p", "code:15688846682752",
+                "-f", "temp/max2"
+        };
+        app.run(args);
+    }
+
+    @Test
+    public void testReader3x2() {
+        DolphinSchedulerCommandApp app = new DolphinSchedulerCommandApp();
+        String[] args = new String[]{
+                "-e", "http://39.106.89.151:12345/",
+                "-t", "xxxxx",
+                "-v", "3.1.5",
+                "-p", "p_sparks",
+                "-f", "temp/max2"
         };
         app.run(args);
     }

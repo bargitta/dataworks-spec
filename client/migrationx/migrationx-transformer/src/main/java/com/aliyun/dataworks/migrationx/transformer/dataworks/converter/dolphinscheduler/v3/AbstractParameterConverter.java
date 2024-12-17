@@ -42,6 +42,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.mode
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.conditions.ConditionsParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.datax.DataxParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.dependent.DependentParameters;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.dlc.DLCParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.flink.FlinkParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.hivecli.HiveCliParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.http.HttpParameters;
@@ -112,6 +113,7 @@ public abstract class AbstractParameterConverter<Parameter extends AbstractParam
         taskTypeClassMap.put(TaskType.MR, MapReduceParameters.class);
         taskTypeClassMap.put(TaskType.SWITCH, SwitchParameters.class);
         taskTypeClassMap.put(TaskType.HIVECLI, HiveCliParameters.class);
+        taskTypeClassMap.put(TaskType.DLC, DLCParameters.class);
     }
 
     public AbstractParameterConverter(DagData dagData, TaskDefinition taskDefinition,

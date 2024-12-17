@@ -31,8 +31,8 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.Proc
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.Schedule;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.DataSource;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.UdfFunc;
-import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.model.ResourceInfo;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.parameters.AbstractParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.subprocess.SubProcessParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
@@ -66,7 +66,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Slf4j
 public class V3ProcessDefinitionConverter
-        extends ProcessDefinitionConverter<Project, DagData, DataSource, ResourceInfo, UdfFunc> {
+        extends ProcessDefinitionConverter<Project, DagData, DataSource, ResourceComponent, UdfFunc> {
     private List<DwWorkflow> dwWorkflowList = new ArrayList<>();
 
     private ProcessDefinition processDefinition;
@@ -77,7 +77,7 @@ public class V3ProcessDefinitionConverter
     private DolphinSchedulerConverterFilter filter;
 
     public V3ProcessDefinitionConverter(
-            DolphinSchedulerConverterContext<Project, DagData, DataSource, ResourceInfo, UdfFunc> converterContext,
+            DolphinSchedulerConverterContext<Project, DagData, DataSource, ResourceComponent, UdfFunc> converterContext,
             DagData dagData) {
         super(converterContext, dagData);
         this.dagData = dagData;
@@ -93,6 +93,7 @@ public class V3ProcessDefinitionConverter
 
     @Override
     public List<DwWorkflow> convert() {
+        log.info("converting processDefinition {}", processDefinition.getName());
         DwWorkflow dwWorkflow = new DwWorkflow();
         dwWorkflow.setName(toWorkflowName(processDefinition));
         dwWorkflow.setType(WorkflowType.BUSINESS);
@@ -116,7 +117,13 @@ public class V3ProcessDefinitionConverter
                             }
                             return true;
                         })
-                        .filter(task -> filter.filter(projectName, processName, task.getName()))
+                        .filter(task -> {
+                            boolean isFilter = filter.filter(projectName, processName, task.getName());
+                            if (!isFilter) {
+                                log.warn("task {} not in filter pattern", task.getName());
+                            }
+                            return isFilter;
+                        })
                         .map(task -> {
                             List<DwWorkflow> dwWorkflows = convertTaskToWorkflowWithLoadedTask(task, loadedTasks);
                             checkPoint.doCheckpoint(writer, dwWorkflows, processName, task.getName());
@@ -132,6 +139,7 @@ public class V3ProcessDefinitionConverter
         }
 
         //processSubProcessDefinitionDepends();
+        log.info("successfully converted {}, size {}", processDefinition.getName(), dwWorkflowList.size());
         return dwWorkflowList;
     }
 
@@ -190,11 +198,13 @@ public class V3ProcessDefinitionConverter
 
     private List<DwWorkflow> convertTaskToWorkFlow(TaskDefinition taskDefinition) {
         if (inSkippedList(taskDefinition)) {
+            log.warn("task {} in skipped list", taskDefinition.getName());
             return Collections.emptyList();
         }
         try {
             AbstractParameterConverter<AbstractParameters> taskConverter
                     = TaskConverterFactoryV3.create(dagData, taskDefinition, converterContext);
+            log.info("convert task {}", taskDefinition.getName());
             taskConverter.convert();
             return taskConverter.getWorkflowList();
         } catch (UnSupportedTypeException e) {

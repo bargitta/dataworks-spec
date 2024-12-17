@@ -30,6 +30,7 @@ import com.aliyun.dataworks.common.spec.domain.SpecRefEntity;
 import com.aliyun.dataworks.common.spec.domain.Specification;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.common.spec.domain.enums.DependencyType;
+import com.aliyun.dataworks.common.spec.domain.enums.NodeRecurrenceType;
 import com.aliyun.dataworks.common.spec.domain.enums.TriggerType;
 import com.aliyun.dataworks.common.spec.domain.enums.VariableType;
 import com.aliyun.dataworks.common.spec.domain.interfaces.Input;
@@ -40,6 +41,7 @@ import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
 import com.aliyun.dataworks.common.spec.domain.noref.SpecForEach;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecNodeOutput;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecScheduleStrategy;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecScript;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecTrigger;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecVariable;
@@ -51,6 +53,7 @@ import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -69,6 +72,7 @@ public class DataWorksNodeAdapter implements DataWorksNode, DataWorksNodeAdapter
     public static final Integer NODE_TYPE_MANUAL = 1;
     public static final Integer NODE_TYPE_PAUSE = 2;
     public static final Integer NODE_TYPE_SKIP = 3;
+    public static final Integer NODE_TYPE_NONE_AUTO = 4;
 
     private static final Logger logger = LoggerFactory.getLogger(DataWorksNodeAdapter.class);
     private static final String DELAY_SECONDS = "delaySeconds";
@@ -276,22 +280,34 @@ public class DataWorksNodeAdapter implements DataWorksNode, DataWorksNodeAdapter
 
     @Override
     public Integer getNodeType() {
+        if (delegate.getObject() instanceof SpecWorkflow) {
+            return Optional.ofNullable(((SpecWorkflow)delegate.getObject()).getStrategy()).map(SpecScheduleStrategy::getRecurrenceType)
+                .map(DataWorksNodeAdapter::convertRecurrenceType)
+                .orElse(null);
+        }
+
         SpecNode specNode = (SpecNode)delegate.getObject();
         if (Optional.ofNullable(specNode.getTrigger()).map(SpecTrigger::getType).map(TriggerType.MANUAL::equals).orElse(false)) {
             return NODE_TYPE_MANUAL;
         }
 
-        return Optional.ofNullable(specNode.getRecurrence()).map(nodeRecurrenceType -> {
-            switch (nodeRecurrenceType) {
-                case PAUSE:
-                    return NODE_TYPE_PAUSE;
-                case SKIP:
-                    return NODE_TYPE_SKIP;
-                case NORMAL:
-                    return NODE_TYPE_NORMAL;
-            }
-            return null;
-        }).orElseThrow(() -> new RuntimeException("not support node type: " + specNode));
+        return Optional.ofNullable(specNode.getRecurrence())
+            .map(DataWorksNodeAdapter::convertRecurrenceType)
+            .orElseThrow(() -> new RuntimeException("not support node type: " + specNode));
+    }
+
+    private static Integer convertRecurrenceType(NodeRecurrenceType nodeRecurrenceType) {
+        switch (nodeRecurrenceType) {
+            case PAUSE:
+                return NODE_TYPE_PAUSE;
+            case SKIP:
+                return NODE_TYPE_SKIP;
+            case NORMAL:
+                return NODE_TYPE_NORMAL;
+            case NONE_AUTO:
+                return NODE_TYPE_NONE_AUTO;
+        }
+        return null;
     }
 
     @Override
@@ -303,6 +319,24 @@ public class DataWorksNodeAdapter implements DataWorksNode, DataWorksNodeAdapter
             .orElseGet(() -> Optional.ofNullable(runtime.getCommand())
                 .map(getNodeTypeByName)
                 .orElseThrow(() -> new SpecException("unknown node command runtime: " + runtime)));
+    }
+
+    @Override
+    public String getAdvanceSettings() {
+        Map<String, Object> settings = new HashMap<>();
+        Optional.ofNullable(delegate.getScript()).map(SpecScript::getRuntime).map(SpecScriptRuntime::getEmrJobConfig)
+            .filter(MapUtils::isNotEmpty)
+            .ifPresent(settings::putAll);
+        Optional.ofNullable(delegate.getScript()).map(SpecScript::getRuntime).map(SpecScriptRuntime::getCdhJobConfig)
+            .filter(MapUtils::isNotEmpty)
+            .ifPresent(settings::putAll);
+        Optional.ofNullable(delegate.getScript()).map(SpecScript::getRuntime).map(SpecScriptRuntime::getAdbJobConfig)
+            .filter(MapUtils::isNotEmpty)
+            .ifPresent(settings::putAll);
+        Optional.ofNullable(delegate.getScript()).map(SpecScript::getRuntime).map(SpecScriptRuntime::getSparkConf)
+            .filter(MapUtils::isNotEmpty)
+            .ifPresent(settings::putAll);
+        return MapUtils.isEmpty(settings) ? null : JSON.toJSONString(settings);
     }
 
     @Override

@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson2.JSON;
+
 import com.aliyun.dataworks.common.spec.domain.dw.codemodel.CodeModel;
 import com.aliyun.dataworks.common.spec.domain.dw.codemodel.CodeModelFactory;
 import com.aliyun.dataworks.common.spec.domain.dw.codemodel.ComponentSqlCode;
@@ -36,15 +38,17 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.NodeConte
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.NodeIo;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.NodeUseType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.RerunMode;
-
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author 聿剑
  * @date 2024/6/18
  */
 @Getter
+@Slf4j
 public class DwNodeEntityAdapter implements DwNodeEntity {
     private final DwNode dwNode;
 
@@ -70,6 +74,11 @@ public class DwNodeEntityAdapter implements DwNodeEntity {
     @Override
     public String getResourceGroupName() {
         return dwNode.getResourceGroupName();
+    }
+
+    @Override
+    public Long getResourceGroupId() {
+        return null;
     }
 
     @Override
@@ -138,6 +147,11 @@ public class DwNodeEntityAdapter implements DwNodeEntity {
     }
 
     @Override
+    public Integer getNodeType() {
+        return null;
+    }
+
+    @Override
     public Boolean getPauseSchedule() {
         return dwNode.getPauseSchedule();
     }
@@ -199,7 +213,7 @@ public class DwNodeEntityAdapter implements DwNodeEntity {
 
     @Override
     public List<DwNodeEntity> getInnerNodes() {
-        return ListUtils.emptyIfNull(dwNode.getInnerNodes()).stream().map(n -> new DwNodeEntityAdapter((DwNode) n)).collect(Collectors.toList());
+        return ListUtils.emptyIfNull(dwNode.getInnerNodes()).stream().map(n -> new DwNodeEntityAdapter((DwNode)n)).collect(Collectors.toList());
     }
 
     @Override
@@ -290,13 +304,80 @@ public class DwNodeEntityAdapter implements DwNodeEntity {
     @Override
     public SpecComponent getComponent() {
         return Optional.ofNullable(CodeProgramType.getNodeTypeByName(getType()))
-                .map(type -> {
-                    if (CodeProgramType.COMPONENT_SQL.name().equalsIgnoreCase(type.name())) {
-                        return getComponentSql();
-                    }
-                    return getSqlComponent();
-                })
+            .map(type -> {
+                if (CodeProgramType.COMPONENT_SQL.name().equalsIgnoreCase(type.name())) {
+                    return getComponentSql();
+                }
+                return getSqlComponent();
+            })
+            .orElse(null);
+    }
+
+    @Override
+    public String getImageId() {
+        return dwNode.getImageId();
+    }
+
+    @Override
+    public Long getCalendarId() {
+        return dwNode.getCalendarId();
+    }
+
+    @Override
+    public Integer getStreamLaunchMode() {
+        return null;
+    }
+
+    @Override
+    public Boolean getIgnoreBranchConditionSkip() {
+        try {
+            return Optional.ofNullable(dwNode.getExtraConfig())
+                .filter(StringUtils::isNotBlank)
+                .map(JSON::parseObject)
+                .map(js -> js.getBoolean("ignoreBranchConditionSkip"))
                 .orElse(null);
+        } catch (Exception e) {
+            log.warn("ignoreBranchConditionSkip parse error, text: {}", getExtraConfig(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public Integer getAlisaTaskKillTimeout() {
+        try {
+            return Optional.ofNullable(getExtraConfig())
+                .filter(StringUtils::isNotBlank)
+                .map(JSON::parseObject)
+                .map(extConfig -> extConfig.getInteger("alisaTaskKillTimeout"))
+                .orElse(null);
+        } catch (Exception e) {
+            log.warn("parse extConfig.alisaTaskKillTimeout failed: {}, ", getExtraConfig(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public Integer getLoopCount() {
+        try {
+            return Optional.ofNullable(getExtraConfig())
+                .filter(StringUtils::isNotBlank)
+                .map(JSON::parseObject)
+                .map(extConfig -> extConfig.getInteger("loopCount"))
+                .orElse(null);
+        } catch (Exception e) {
+            log.warn("parse extConfig.loopCount failed: {}, ", getExtraConfig(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public Long getParentId() {
+        return null;
+    }
+
+    @Override
+    public String getCu() {
+        return dwNode.getCu();
     }
 
     @Override
@@ -337,9 +418,9 @@ public class DwNodeEntityAdapter implements DwNodeEntity {
 
         Map<String, Object> metadata = new HashMap<>();
         Optional.ofNullable(codeModel.getCodeModel())
-                .map(ComponentSqlCode::getComponent)
-                .map(ComponentInfo::getVersion)
-                .ifPresent(version -> metadata.put("version", version));
+            .map(ComponentSqlCode::getComponent)
+            .map(ComponentInfo::getVersion)
+            .ifPresent(version -> metadata.put("version", version));
         metadata.put("id", com.getId());
         com.setMetadata(metadata);
         return com;

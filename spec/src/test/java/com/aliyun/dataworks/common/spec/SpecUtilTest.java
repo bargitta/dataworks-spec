@@ -2038,6 +2038,10 @@ public class SpecUtilTest {
         subnode.setId("subnode1");
         subnode.setName("subnode1");
         subflow.setNodes(Collections.singletonList(subnode));
+        subflow.setId("12345");
+        subflow.setCitable(true);
+        subflow.setOutput("output");
+        subflow.setName("subflow");
         node.setSubflow(subflow);
         spec.setNodes(Collections.singletonList(node));
         sp.setSpec(spec);
@@ -2046,6 +2050,10 @@ public class SpecUtilTest {
         Assert.assertNotNull(json);
         Assert.assertEquals(subnode.getId(), json.getByPath("$.spec.nodes[0].subflow.nodes[0].id"));
         Assert.assertEquals(subnode.getName(), json.getByPath("$.spec.nodes[0].subflow.nodes[0].name"));
+        Assert.assertEquals(subflow.getId(), json.getByPath("$.spec.nodes[0].subflow.id"));
+        Assert.assertEquals(subflow.getCitable(), json.getByPath("$.spec.nodes[0].subflow.citable"));
+        Assert.assertEquals(subflow.getOutput(), json.getByPath("$.spec.nodes[0].subflow.output"));
+        Assert.assertEquals(subflow.getName(), json.getByPath("$.spec.nodes[0].subflow.name"));
 
         Specification<DataWorksWorkflowSpec> parsed = SpecUtil.parseToDomain(json.toJSONString());
         Assert.assertNotNull(parsed);

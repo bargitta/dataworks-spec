@@ -22,6 +22,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.enum
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.sql.SqlParameters;
 import com.aliyun.dataworks.migrationx.transformer.dolphinscheduler.converter.flowspec.common.AbstractNodeConverter;
 import com.aliyun.dataworks.migrationx.transformer.dolphinscheduler.converter.flowspec.common.context.FlowSpecConverterContext;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -64,7 +65,7 @@ public class SqlNodeConverter extends AbstractNodeConverter<SqlParameters> {
 
     private void setDefaultDataSource(SqlParameters sqlParameters) {
         sqlParameters.setType(context.getDefaultDatasourceType());
-        sqlParameters.setDatasource(context.getDefaultDatasourceId());
+        sqlParameters.setDatasource(ObjectUtils.defaultIfNull(context.getDefaultDatasourceId(), 1));
     }
 
     private boolean checkDatasource(SpecDatasource datasource) {

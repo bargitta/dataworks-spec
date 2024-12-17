@@ -43,10 +43,10 @@ import com.aliyun.migrationx.common.utils.GsonUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -117,6 +117,27 @@ public class DolphinschedulerApiV3Service implements DolphinSchedulerApi {
         return GsonUtils.fromJsonString(responseStr, new TypeToken<Response<List<JsonObject>>>() {}.getType());
     }
 
+    @Override
+    public List<JsonElement> queryResourceListByPage(QueryResourceListRequest request, int pageNum, int pageSize)
+            throws Exception {
+        HttpClientUtil client = new HttpClientUtil();
+        String url = String.format("resources?type=%s&fullName=%s&tenantCode=&searchVal=&pageNo=%s&pageSize=%s&id=-1",
+                request.getType(), request.getFullName() == null ? "" : request.getFullName(), pageNum, pageSize);
+        HttpGet httpGet = newHttpGet(url);
+        String responseStr = client.executeAndGet(httpGet);
+        Response<JsonObject> response = GsonUtils.fromJsonString(responseStr, new TypeToken<Response<JsonObject>>() {}.getType());
+        if (response.getCode() > 0) {
+            log.error("response error {}", responseStr);
+            return null;
+        }
+        JsonObject data = response.getData();
+        if (!data.has("totalList")) {
+            log.error("response {}", responseStr);
+            return null;
+        }
+        return data.get("totalList").getAsJsonArray().asList();
+    }
+
     public String getSuggestedFileName(Header contentDispositionHeader) {
         String value = contentDispositionHeader.getValue();
         return Arrays.stream(StringUtils.split(value, ";"))
@@ -153,7 +174,7 @@ public class DolphinschedulerApiV3Service implements DolphinSchedulerApi {
             return null;
         }
 
-        File tmpFile = new File(FileUtils.getTempDirectory(), fileName);
+        File tmpFile = new File(request.getDir(), fileName);
         FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
         IOUtils.copy(inputStream, fileOutputStream);
         return tmpFile;

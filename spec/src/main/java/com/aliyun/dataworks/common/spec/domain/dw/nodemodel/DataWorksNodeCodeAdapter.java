@@ -39,6 +39,7 @@ import com.aliyun.dataworks.common.spec.domain.dw.codemodel.EmrCode;
 import com.aliyun.dataworks.common.spec.domain.dw.codemodel.EmrJobType;
 import com.aliyun.dataworks.common.spec.domain.dw.codemodel.EmrLauncher;
 import com.aliyun.dataworks.common.spec.domain.dw.codemodel.MultiLanguageScriptingCode;
+import com.aliyun.dataworks.common.spec.domain.dw.codemodel.SparkSubmitCode;
 import com.aliyun.dataworks.common.spec.domain.dw.nodemodel.DataWorksNodeAdapter.Context;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.common.spec.domain.dw.types.ProductModule;
@@ -118,6 +119,10 @@ public class DataWorksNodeCodeAdapter implements DataWorksNodeAdapterContextAwar
                 return getComponentSqlCode((SpecNode)delegate.getObject(), script);
             }
 
+            if (SparkSubmitCode.class.equals(codeClass)) {
+                return getSparkSubmitCode(script);
+            }
+
             // common default logic to get content
             code.setSourceCode(script.getContent());
             Code parsed = code.parse(script.getContent());
@@ -126,6 +131,20 @@ public class DataWorksNodeCodeAdapter implements DataWorksNodeAdapterContextAwar
             log.warn("get code model error: ", ex);
         }
         return script.getContent();
+    }
+
+    /**
+     * adb spark command as scheduler code
+     *
+     * @param script SpecScript
+     * @return String
+     */
+    private String getSparkSubmitCode(SpecScript script) {
+        CodeModel<SparkSubmitCode> code = CodeModelFactory.getCodeModel(CodeProgramType.ADB_SPARK.name(), script.getContent());
+        boolean isDeployToScheduler = Optional.ofNullable(context)
+            .map(Context::isDeployToScheduler)
+            .orElse(false);
+        return isDeployToScheduler ? code.getCodeModel().getCommand() : code.getContent();
     }
 
     private String getComponentSqlCode(SpecNode specNode, SpecScript script) {
@@ -264,7 +283,7 @@ public class DataWorksNodeCodeAdapter implements DataWorksNodeAdapterContextAwar
             launcher.setAllocationSpec(allocationSpecProps);
             Optional.ofNullable(rt.getSparkConf()).filter(MapUtils::isNotEmpty).ifPresent(allocationSpecProps::putAll);
 
-            Optional.ofNullable(rt.getEmrJobConfig()).ifPresent(emrJobConfig -> {
+            Optional.ofNullable(rt.getEmrJobConfig()).filter(MapUtils::isNotEmpty).ifPresent(emrJobConfig -> {
                 EmrAllocationSpec allocationSpec = new EmrAllocationSpec();
                 allocationSpec.setUserName((String)emrJobConfig.get("submitter"));
                 allocationSpec.setQueue(Optional.ofNullable((String)emrJobConfig.get("queue")).filter(StringUtils::isNotBlank).orElse("default"));
@@ -273,17 +292,23 @@ public class DataWorksNodeCodeAdapter implements DataWorksNodeAdapterContextAwar
                 allocationSpec.setPriority(Optional.ofNullable(emrJobConfig.get("priority")).map(String::valueOf).orElse("1"));
                 allocationSpec.setUseGateway(Optional.ofNullable((String)emrJobConfig.get("submitMode"))
                     .map(mode -> LabelEnum.getByLabel(EmrJobSubmitMode.class, mode))
-                    .map(mode -> Objects.equals(mode, EmrJobSubmitMode.LOCAL)).orElse(false));
+                    .map(mode -> Objects.equals(mode, EmrJobSubmitMode.LOCAL))
+                    .orElse(null));
                 allocationSpec.setReuseSession(Optional.ofNullable(emrJobConfig.get("sessionEnabled"))
-                    .map(String::valueOf).map(BooleanUtils::toBoolean).orElse(false));
+                    .map(String::valueOf).map(BooleanUtils::toBoolean)
+                    .orElse(null));
                 allocationSpec.setBatchMode(Optional.ofNullable((String)emrJobConfig.get("executeMode"))
                     .map(mode -> LabelEnum.getByLabel(EmrJobExecuteMode.class, mode))
-                    .map(mode -> Objects.equals(mode, EmrJobExecuteMode.BATCH)).orElse(false));
+                    .map(mode -> Objects.equals(mode, EmrJobExecuteMode.BATCH))
+                    .orElse(false));
                 allocationSpec.setEnableJdbcSql(Optional.ofNullable(emrJobConfig.get("enableJdbcSql"))
-                    .map(String::valueOf).map(BooleanUtils::toBoolean).orElse(false));
+                    .map(String::valueOf).map(BooleanUtils::toBoolean)
+                    .orElse(null));
                 codeModel.getProperties().getEnvs().put(EmrCode.ENVS_KEY_FLOW_SKIP_SQL_ANALYZE, String.valueOf(allocationSpec.getBatchMode()));
-                Optional.ofNullable((JsonObject)GsonUtils.fromJsonString(GsonUtils.toJsonString(allocationSpec), JsonObject.class)).ifPresent(
-                    json -> json.entrySet().forEach(entry -> allocationSpecProps.put(entry.getKey(), entry.getValue().getAsString())));
+                Optional.ofNullable((JsonObject)GsonUtils.fromJsonString(GsonUtils.toJsonString(allocationSpec), JsonObject.class)).ifPresent(json ->
+                    json.entrySet().stream()
+                        .filter(ent -> ent.getValue() != null && !ent.getValue().isJsonNull())
+                        .forEach(entry -> allocationSpecProps.put(entry.getKey(), entry.getValue().getAsJsonPrimitive())));
                 emrJobConfig.keySet().stream().filter(key -> ListUtils.emptyIfNull(ReflectUtils.getPropertyFields(allocationSpec)).stream()
                     .noneMatch(f -> StringUtils.equals(f.getName(), key))).forEach(key -> allocationSpecProps.put(key, emrJobConfig.get(key)));
             });

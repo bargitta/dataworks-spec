@@ -1,0 +1,23 @@
+{
+  "workflowPathPrefix": "Airflow导入/",
+  "typeMapping": {
+    "EmptyOperator": "VIRTUAL",
+    "DummyOperator": "VIRTUAL",
+    "ExternalTaskSensor": "VIRTUAL",
+    "BashOperator": "DIDE_SHELL",
+    "HiveToMySqlTransfer": "DI",
+    "PrestoToMySqlTransfer": "DI",
+    "PythonOperator": "PYTHON",
+    "HiveOperator": "EMR_HIVE",
+    "SqoopOperator": "EMR_SQOOP",
+    "SparkSqlOperator": "EMR_SPARK_SQL",
+    "SparkSubmitOperator": "EMR_SPARK",
+    "SQLExecuteQueryOperator": "MySQL",
+    "PostgresOperator": "Postgresql",
+    "MySqlOperator": "MySQL",
+    "default": "PYTHON"
+  },
+  "settings": {
+    "workflow.converter.target.schedule.resGroupIdentifier": ""
+  }
+}

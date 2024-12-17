@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.validation.constraints.NotNull;
 
+import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.common.spec.domain.ref.component.SpecComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.NodeContext;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.NodeIo;
@@ -60,6 +61,15 @@ public interface DwNodeEntity {
      * @return resource group name
      */
     String getResourceGroupName();
+
+    /**
+     * get resource group id
+     *
+     * @return resource group id
+     */
+    default Long getResourceGroupId() {
+        return null;
+    }
 
     /**
      * node name
@@ -155,6 +165,15 @@ public interface DwNodeEntity {
      * @return rerun mode
      */
     RerunMode getRerunMode();
+
+    /**
+     * node type
+     *
+     * @return node type
+     */
+    default Integer getNodeType() {
+        return null;
+    }
 
     /**
      * is paused
@@ -371,6 +390,60 @@ public interface DwNodeEntity {
      */
     SpecComponent getComponent();
 
+    /**
+     * get image id
+     *
+     * @return image id
+     */
+    default String getImageId() {
+        return null;
+    }
+
+    /**
+     * get calendar id
+     *
+     * @return calendar id
+     */
+    default Long getCalendarId() {
+        return null;
+    }
+
+    /**
+     * get stream launch mode
+     *
+     * @return stream launch mode
+     */
+    default Integer getStreamLaunchMode() {
+        return null;
+    }
+
+    /**
+     * get ignore branch condition skip
+     *
+     * @return ignore branch condition skip
+     */
+    default Boolean getIgnoreBranchConditionSkip() {
+        return null;
+    }
+
+    /**
+     * get parent id
+     *
+     * @return parent id
+     */
+    default Long getParentId() {
+        return null;
+    }
+
+    /**
+     * get cu
+     *
+     * @return cu
+     */
+    default String getCu() {
+        return null;
+    }
+
     default String getOrigin() {
         return null;
     }
@@ -385,6 +458,24 @@ public interface DwNodeEntity {
      * @return Map of config pack
      */
     default Map<String, AppConfigPack> getConfigPack() {
+        return null;
+    }
+
+    /**
+     * 超时时间 单位小时
+     *
+     * @return 超时时间
+     */
+    default Integer getAlisaTaskKillTimeout() {
+        return null;
+    }
+
+    /**
+     * max loop count
+     *
+     * @return loop count
+     */
+    default Integer getLoopCount() {
         return null;
     }
 }

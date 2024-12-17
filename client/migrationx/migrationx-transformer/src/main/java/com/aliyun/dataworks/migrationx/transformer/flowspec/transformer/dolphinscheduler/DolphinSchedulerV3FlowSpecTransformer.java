@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -22,17 +25,21 @@ import java.util.stream.Collectors;
 import com.aliyun.dataworks.common.spec.SpecUtil;
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
 import com.aliyun.dataworks.common.spec.domain.Specification;
-import com.aliyun.dataworks.common.spec.domain.enums.SpecVersion;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.v320.DagDataSchedule;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.DolphinSchedulerV3FlowSpecConverter;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.converter.dolphinscheduler.common.context.DolphinSchedulerV3ConverterContext;
+import com.aliyun.dataworks.migrationx.transformer.flowspec.model.SpecRefEntityWrapper;
 import com.aliyun.dataworks.migrationx.transformer.flowspec.transformer.AbstractTransformer;
 import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
 import com.aliyun.migrationx.common.utils.JSONUtils;
+import com.aliyun.migrationx.common.utils.JsonFileUtils;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Desc:
@@ -73,13 +80,12 @@ public class DolphinSchedulerV3FlowSpecTransformer extends AbstractTransformer {
 
     private void read() {
         try {
-            // context is used to provide some config info and prior knowledge
             context = parseContext();
-            if (Objects.isNull(context.getSpecVersion())) {
-                context.setSpecVersion(SpecVersion.V_1_2_0.getLabel());
+            JsonParser jsonParser = JsonFileUtils.buildJsonParser(Files.newInputStream(Paths.get(sourcePath)));
+            JsonNode jsonNode;
+            while ((jsonNode = JSONUtils.readObjFromParser(jsonParser)) != null) {
+                dagDataScheduleList.add(JSONUtils.parseObject(jsonNode, DagDataSchedule.class));
             }
-            String sourceFileContent = FileUtils.readFileToString(new File(sourcePath), StandardCharsets.UTF_8);
-            dagDataScheduleList.addAll(JSONUtils.toList(sourceFileContent, DagDataSchedule.class));
         } catch (IOException e) {
             log.error("read config or source file error", e);
             throw new RuntimeException(e);
@@ -87,8 +93,21 @@ public class DolphinSchedulerV3FlowSpecTransformer extends AbstractTransformer {
     }
 
     private void doTransform() {
+        // workflows in config file
+        ListUtils.emptyIfNull(context.getDependSpecification()).stream()
+            .map(Specification::getSpec)
+            .filter(Objects::nonNull)
+            .map(DataWorksWorkflowSpec::getWorkflows)
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .filter(workflow -> StringUtils.isNotBlank(workflow.getId()))
+            .forEach(workflow -> {
+                context.getSpecRefEntityMap().put(workflow.getId(), new SpecRefEntityWrapper().setSpecRefEntity(workflow));
+            });
+
         specificationList.addAll(ListUtils.emptyIfNull(dagDataScheduleList).stream()
             .map(dagDataSchedule -> new DolphinSchedulerV3FlowSpecConverter(dagDataSchedule, context).convert())
+            .flatMap(Collection::stream)
             .peek(specification -> log.info("specification: {}", specification))
             .collect(Collectors.toList()));
     }

@@ -60,6 +60,6 @@ tar czf $DEPLOY_FILE .
 
 cd -
 
-log $INFO "Pacakge tgz file: $DEPLOY_FILE"
+log $INFO "Package tgz file: $DEPLOY_FILE"
 
 

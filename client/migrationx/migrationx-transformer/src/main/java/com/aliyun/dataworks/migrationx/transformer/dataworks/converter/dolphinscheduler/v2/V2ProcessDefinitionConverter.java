@@ -30,9 +30,9 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.Proc
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.Schedule;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.DataSource;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.UdfFunc;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enums.TaskType;
-import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.process.ResourceInfo;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.task.AbstractParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.task.subprocess.SubProcessParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
@@ -66,7 +66,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Slf4j
 public class V2ProcessDefinitionConverter
-        extends ProcessDefinitionConverter<Project, DagData, DataSource, ResourceInfo, UdfFunc> {
+        extends ProcessDefinitionConverter<Project, DagData, DataSource, ResourceComponent, UdfFunc> {
     private List<DwWorkflow> dwWorkflowList = new ArrayList<>();
 
     private ProcessDefinition processDefinition;
@@ -77,7 +77,7 @@ public class V2ProcessDefinitionConverter
     private DolphinSchedulerConverterFilter filter;
 
     public V2ProcessDefinitionConverter(
-            DolphinSchedulerConverterContext<Project, DagData, DataSource, ResourceInfo, UdfFunc> converterContext,
+            DolphinSchedulerConverterContext<Project, DagData, DataSource, ResourceComponent, UdfFunc> converterContext,
             DagData dagData) {
         super(converterContext, dagData);
         this.dagData = dagData;
