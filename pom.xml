@@ -336,7 +336,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
                     <configuration>
-                        <argLine>${powermock.jdk11.argLine}</argLine>
+                        <argLine>${powermock.jdk11.argLine} -D-Duser.timezone=Asia/Shanghai</argLine>
                     </configuration>
                 </plugin>
                 <plugin>
