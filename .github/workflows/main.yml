@@ -19,12 +19,10 @@ jobs:
         java-version: '11'
         distribution: 'temurin' # 选择一个Java发行版
         cache: maven # 缓存m2仓库以加速构建
-    - name: Set Timezone
-      run: export TZ=Asia/Shanghai
     - name: Build with Maven
-      run: mvn -B clean package --file pom.xml
+      run: export TZ=Asia/Shanghai; mvn -B clean package --file pom.xml
     - name: Run JUnit tests
-      run: mvn -B verify --file pom.xml
+      run: export TZ=Asia/Shanghai; mvn -B verify --file pom.xml
     - name: Collect Test Results
       run: |
         mkdir -p ./test-results
