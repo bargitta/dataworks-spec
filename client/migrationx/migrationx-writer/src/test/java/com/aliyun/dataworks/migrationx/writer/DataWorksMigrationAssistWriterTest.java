@@ -9,7 +9,7 @@ public class DataWorksMigrationAssistWriterTest {
     @Test
     public void test1() throws Exception {
         DataWorksMigrationAssistWriter writer = new DataWorksMigrationAssistWriter();
-        String baseDir = "/Users/xx/Documents/workspace/alibabacloud-dataworks-tool-migration";
+        String baseDir = "/Users/lunjianchang/Documents/workspace/alibabacloud-dataworks-tool-migration";
         String source = String.format("%s/temp/target3.zip", baseDir);
         String[] args = new String[]{
                 //"-e", "dataworks.cn-shenzhen.aliyuncs.com",  //endpoint

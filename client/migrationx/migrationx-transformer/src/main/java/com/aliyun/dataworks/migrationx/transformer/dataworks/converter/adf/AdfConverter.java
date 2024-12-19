@@ -21,9 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -180,7 +177,8 @@ public class AdfConverter {
         } else if("ExecutePipeline".equalsIgnoreCase(activityType)){
             return null;
         }
-        throw new RuntimeException("not supported activity type " + activityType);
+        log.info("not supported activity,need to use shell " + activity.getName());
+        return activity.getName();
     }
 
     @NotNull
@@ -207,7 +205,7 @@ public class AdfConverter {
      * @return hours
      */
     public static int toTimeoutInHours(String timeStr) {
-        if (timeStr == null || timeStr.trim().isEmpty()) {
+        if (timeStr == null || timeStr.isEmpty()) {
             return 12;
         }
 
@@ -226,17 +224,24 @@ public class AdfConverter {
         }
 
         String timePart = dayAndTime[1];
-        Duration duration;
-        try {
-            LocalTime lt = LocalTime.parse(timePart);
-            duration = Duration.between(LocalTime.MIDNIGHT, lt);
-        } catch (DateTimeParseException e) {
-            log.info("Invalid time part. Expected format HH:MM:SS", e);
+        String[] hms = timePart.split(":");
+        if (hms.length != 3) {
+            log.info("Invalid time part. Expected format: HH:mm:ss");
             return 12;
         }
 
-        double totalHours = days * 24 + duration.getSeconds() / 3600.0;
-        return (int) totalHours;
+        int hours, minutes, seconds;
+        try {
+            hours = Integer.parseInt(hms[0]);
+            minutes = Integer.parseInt(hms[1]);
+            seconds = Integer.parseInt(hms[2]);
+        } catch (NumberFormatException e) {
+            log.info("Invalid time components in: " + timePart);
+            return 12;
+        }
+        // Calculate total duration in seconds
+        long totalSeconds = days * 86400L + hours * 3600L + minutes * 60L + seconds;
+        return (int) totalSeconds/3600;
     }
 
     @NotNull

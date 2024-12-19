@@ -44,8 +44,8 @@ public class Pipeline {
                 boolean waitOnCompletion;
                 String notebookPath;
                 String method;
-                String url;
-                Map<String,String> headers;
+                Object url;
+                Map<String,Object> headers;
             }
 
             @Data

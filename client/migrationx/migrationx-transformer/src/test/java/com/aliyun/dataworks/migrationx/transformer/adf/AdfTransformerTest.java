@@ -10,9 +10,9 @@ public class AdfTransformerTest {
     public void test1() {
         DataWorksAdfTransformerApp transformerApp = new DataWorksAdfTransformerApp();
         String[] args = new String[]{
-                "-c", "/Users/xichen/Documents/repos/alibabacloud-dataworks-tool-migration/client/migrationx/migrationx-transformer/src/main/conf/adf-mc-transformer-config.json",
-                "-s", "/Users/xichen/Documents/repos/alibabacloud-dataworks-tool-migration/client/temp/adf/.tmp/chenxi-df/",
-                "-t", "/Users/xichen/Documents/repos/alibabacloud-dataworks-tool-migration/client/temp/package/"
+                "-c", "/Users/xichen/Documents/idea_projects/alibabacloud-dataworks-tool-migration/client/migrationx/migrationx-transformer/src/main/conf/adf-mc-transformer-config.json",
+                "-s", "/Users/xichen/Documents/idea_projects/json/",
+                "-t", "/Users/xichen/Documents/idea_projects/target/"
         };
         transformerApp.run(args);
     }

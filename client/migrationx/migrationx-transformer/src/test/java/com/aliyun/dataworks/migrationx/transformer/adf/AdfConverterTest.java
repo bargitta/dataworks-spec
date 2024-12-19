@@ -54,8 +54,7 @@ public class AdfConverterTest {
         Assert.assertEquals(12, AdfConverter.toTimeoutInHours("0.12:00:00"));
         Assert.assertEquals(12, AdfConverter.toTimeoutInHours("0.12:33:00"));
         Assert.assertEquals(60, AdfConverter.toTimeoutInHours("2.12:33:00"));
-
-
+        Assert.assertEquals(1, AdfConverter.toTimeoutInHours("0.1:00:00"));
     }
 
     private AdfConf prepareAdfConf(String path) throws IOException {
