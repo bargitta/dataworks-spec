@@ -11,6 +11,7 @@ import com.aliyun.dataworks.common.spec.domain.ref.SpecWorkflow;
 import com.aliyun.dataworks.migrationx.domain.adf.*;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.adf.AdfConverter;
 import com.aliyun.migrationx.common.utils.JSONUtils;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,8 +20,25 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 public class AdfConverterTest {
+
+    @Test
+    public void testNotebookPathConversionWithHappyPath() {
+        String originalPath = "/Repos/NGBI/PRD/DM/dm_td_calendar";
+        Map<String, String> map = ImmutableMap.of("removePrefix", "/Repos/NGBI/", "addPrefix", "/Users/abc/Documents/github_repos/");
+        String localPath = AdfConverter.getLocalPath(map, originalPath);
+        Assert.assertEquals("/Users/abc/Documents/github_repos/PRD/DM/dm_td_calendar", localPath);
+    }
+
+    @Test
+    public void testNotebookPathConversionWithInvalidInput() {
+        Map<String, String> map = ImmutableMap.of("removePrefix", "/Repos/NGBI/", "addPrefix", "/Users/abc/Documents/github_repos/");
+        Assert.assertEquals("", AdfConverter.getLocalPath(map, ""));
+        Assert.assertNull(AdfConverter.getLocalPath(map, null));
+    }
+
     @Test
     public void testOutput() {
         AdfPackage adfPackage = new AdfPackage();
