@@ -10,7 +10,7 @@ import java.util.Map;
 public class AdfPackageLoaderTest {
 
     @Test
-    public void testLoadPackage() {
+    public void testLoadPackage_withTriggersOnly() {
         File packageFile = new File("src/test/resources/");
         AdfPackageLoader loader = new AdfPackageLoader(packageFile);
         AdfPackage adfPackage = loader.loadPackage();

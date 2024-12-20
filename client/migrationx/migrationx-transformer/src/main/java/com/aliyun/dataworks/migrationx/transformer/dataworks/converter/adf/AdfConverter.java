@@ -15,8 +15,13 @@ import com.aliyun.dataworks.migrationx.domain.adf.Trigger;
 import com.google.common.collect.ImmutableList;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -27,6 +32,8 @@ import java.util.Map;
 
 @Slf4j
 public class AdfConverter {
+    public static final String REMOVE_PREFIX = "removePrefix";
+    public static final String ADD_PREFIX = "addPrefix";
     private final AdfPackage adfPackage;
     private final AdfConf adfConf;
 
@@ -70,7 +77,7 @@ public class AdfConverter {
             spec.setRecurrence(NodeRecurrenceType.NORMAL);
 
             flow.setTrigger(spec);
-            if (trigger.getProperties() != null ) {
+            if (trigger.getProperties() != null) {
                 if ("ScheduleTrigger".equalsIgnoreCase(trigger.getProperties().getType())) {
                     spec.setType(TriggerType.SCHEDULER);
                 }
@@ -84,7 +91,7 @@ public class AdfConverter {
 
     private String getCronFromConfig(String name) {
         Map<String, String> triggers = adfConf.getSettings().getTriggers();
-        if(triggers.containsKey(name)){
+        if (triggers.containsKey(name)) {
             return triggers.get(name);
         }
         return null;
@@ -145,7 +152,7 @@ public class AdfConverter {
     }
 
     private SpecSubFlow getSubflow(Pipeline.PipelineProperty.Activity activity) throws NoSuchAlgorithmException {
-        if("ExecutePipeline".equalsIgnoreCase(activity.getType())){
+        if ("ExecutePipeline".equalsIgnoreCase(activity.getType())) {
             SpecSubFlow subFlow = new SpecSubFlow();
             String referencePipeline = activity.getTypeProperties().getPipeline().getReferenceName();
             String id = generateId(referencePipeline);
@@ -156,7 +163,7 @@ public class AdfConverter {
     }
 
     @NotNull
-    private static SpecScript getNodeSpecScript(Pipeline.PipelineProperty.Activity activity) {
+    private SpecScript getNodeSpecScript(Pipeline.PipelineProperty.Activity activity) {
         SpecScript script = new SpecScript();
         script.setPath(activity.getName());
         script.setContent(getNodeContent(activity));
@@ -168,17 +175,41 @@ public class AdfConverter {
         return script;
     }
 
-    private static String getNodeContent(Pipeline.PipelineProperty.Activity activity) {
+    private String getNodeContent(Pipeline.PipelineProperty.Activity activity) {
         String activityType = activity.getType();
         if ("DatabricksNotebook".equalsIgnoreCase(activityType)) {
-            return activity.getTypeProperties().getNotebookPath();
+            String path = activity.getTypeProperties().getNotebookPath();
+            Map<String, String> localPath = adfConf.getSettings().getNotebookLocalPath();
+            if (localPath != null) {
+                path = getLocalPath(localPath, path);
+                try {
+                    return FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    log.warn("failed to load file {}", path, e);
+                }
+            }
+            return path;
         } else if ("WebActivity".equalsIgnoreCase(activityType)) {
             return activity.getTypeProperties().getMethod() + " " + activity.getTypeProperties().getUrl();
-        } else if("ExecutePipeline".equalsIgnoreCase(activityType)){
+        } else if ("ExecutePipeline".equalsIgnoreCase(activityType)) {
             return null;
         }
         log.info("not supported activity,need to use shell " + activity.getName());
         return activity.getName();
+    }
+
+    @Nullable
+    public static String getLocalPath(Map<String, String> notebookPath, String path) {
+        if (StringUtils.isEmpty(path)) {
+            return path;
+        }
+        if (notebookPath.containsKey(REMOVE_PREFIX)) {
+            path = StringUtils.removeStart(path, notebookPath.get(REMOVE_PREFIX));
+        }
+        if (notebookPath.containsKey(ADD_PREFIX)) {
+            path = notebookPath.get(ADD_PREFIX) + path;
+        }
+        return path;
     }
 
     @NotNull
@@ -187,10 +218,9 @@ public class AdfConverter {
             return CodeProgramType.ODPS_SQL;
         } else if ("WebActivity".equalsIgnoreCase(activityType)) {
             return CodeProgramType.DIDE_SHELL;
-        } else if("ExecutePipeline".equalsIgnoreCase(activityType)) {
+        } else if ("ExecutePipeline".equalsIgnoreCase(activityType)) {
             return CodeProgramType.SUB_PROCESS;
-        }
-        else {
+        } else {
             log.info("covert {} to dide_shell", activityType);
             return CodeProgramType.DIDE_SHELL;
         }
@@ -241,7 +271,7 @@ public class AdfConverter {
         }
         // Calculate total duration in seconds
         long totalSeconds = days * 86400L + hours * 3600L + minutes * 60L + seconds;
-        return (int) totalSeconds/3600;
+        return (int) totalSeconds / 3600;
     }
 
     @NotNull
@@ -270,6 +300,7 @@ public class AdfConverter {
 
     /**
      * generate id value from input string
+     *
      * @param input original id from adf in string format
      * @return a positive long/int value in string format
      * @throws NoSuchAlgorithmException when SHA-256 is missing

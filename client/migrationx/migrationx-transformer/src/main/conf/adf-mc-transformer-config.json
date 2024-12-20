@@ -8,6 +8,10 @@
     "nodeTypeMappings": {
       "DatabricksNotebook": "ODPS_SQL"
     },
-    "unknownNodeType": "DIDE_SHELL"
+    "unknownNodeType": "DIDE_SHELL",
+    "notebookLocalPath" :  {
+      "removePrefix": "/Repos/NGBI/PRD/",
+      "addPrefix": "/Users/xichen/Documents/github_repos/sqlfiles/"
+    }
   }
 }

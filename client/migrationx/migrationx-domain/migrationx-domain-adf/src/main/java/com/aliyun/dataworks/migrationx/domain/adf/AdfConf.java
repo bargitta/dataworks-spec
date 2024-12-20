@@ -17,5 +17,13 @@ public class AdfConf {
         Map<String, String> triggers;
         Map<String, String> nodeTypeMappings;
         String unknownNodeType;
+        /**
+         * local folder of notebook files, it has two properties:removePrefix and addPrefix
+         * which help convert path on azure to local.
+         * e.g.,azure path: /Repos/NGBI/PRD/DWD/dwd_tf_performance_monthly
+         * local path: /Users/abc/repo/PRD/DWD/dwd_tf_performance_monthly
+         * then removePrefix:  /Repos/NGBI/ and addPrefix:  /Users/abc/repo/
+         */
+        Map<String, String> notebookLocalPath;
     }
 }
