@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.aliyun.dataworks.migrationx.reader.adf.AdfCommandApp.GLOBAL_HOST;
@@ -31,6 +32,7 @@ public class AdfReader {
     private static final String LINKED_SERVICE = "linked_services";
 
     private static final String JSON_SUFFIX = ".json";
+    public static final String NEXT_LINK = "nextLink";
 
     private final String subscriptionId;
     private final String resourceGroupName;
@@ -46,7 +48,7 @@ public class AdfReader {
         this.factory = factory;
         this.token = token;
         this.exportFile = exportFile;
-        if(StringUtils.isBlank(host)) {
+        if (StringUtils.isBlank(host)) {
             this.host = GLOBAL_HOST;
         } else {
             this.host = host;
@@ -118,11 +120,21 @@ public class AdfReader {
                 this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
                         + ".DataFactory/factories/{2}/pipelines?api-version=2018-06-01", this.subscriptionId,
                 this.resourceGroupName, this.factory);
-        JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {
-        }.getType());
-        JsonArray jsonArray = jsonObject.get("value").getAsJsonArray();
-        return GsonUtils.gson.fromJson(jsonArray, new TypeToken<List<JsonObject>>() {
-        }.getType());
+        List<JsonObject> pipelines = new ArrayList<>();
+        do {
+            JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {
+            }.getType());
+            JsonArray jsonArray = jsonObject.get("value").getAsJsonArray();
+            pipelines.addAll(GsonUtils.gson.fromJson(jsonArray, new TypeToken<List<JsonObject>>() {
+            }.getType()));
+            if (jsonObject.get(NEXT_LINK) != null) {
+                url = jsonObject.get(NEXT_LINK).getAsString();
+            } else {
+                url = null;
+            }
+        } while (url != null);
+
+        return pipelines;
     }
 
     public List<JsonObject> listTriggers() throws Exception {
