@@ -77,6 +77,7 @@ public class AdfConverterTest {
 
     @Test
     public void testGetValidName() {
+        Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh-DDI    After RetailBI Ready"));
         Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh    DDI    After RetailBI Ready"));
         Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh DDI After RetailBI Ready"));
     }

@@ -143,7 +143,7 @@ public class AdfConverter {
                     depend.setType(DependencyType.NORMAL);
                     SpecNodeOutput output = new SpecNodeOutput();
                     output.setData(id);
-                    output.setRefTableName(dependActivity.getActivity());
+                    output.setRefTableName(getValidName(dependActivity.getActivity()));
                     depend.setOutput(output);
                     specDepend.getDepends().add(depend);
                 }
@@ -152,7 +152,7 @@ public class AdfConverter {
     }
 
     public static String getValidName(String name) {
-        return name.replaceAll("\\s+", "_");
+        return name.replaceAll("\\s+", "_").replaceAll("-", "_");
     }
 
     private SpecSubFlow getSubflow(Pipeline.PipelineProperty.Activity activity) throws NoSuchAlgorithmException {
@@ -169,7 +169,7 @@ public class AdfConverter {
     @NotNull
     private SpecScript getNodeSpecScript(Pipeline.PipelineProperty.Activity activity) {
         SpecScript script = new SpecScript();
-        script.setPath(activity.getName());
+        script.setPath(getValidName(activity.getName()));
         script.setContent(getNodeContent(activity));
         SpecScriptRuntime runtime = new SpecScriptRuntime();
         CodeProgramType command = getCommand(activity.getType());
@@ -187,9 +187,13 @@ public class AdfConverter {
             if (localPath != null) {
                 path = getLocalPath(localPath, path);
                 try {
-                    return FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
-                } catch (IOException e) {
-                    log.warn("failed to load file {}", path, e);
+                    return FileUtils.readFileToString(new File(path + ".sql"), StandardCharsets.UTF_8);
+                } catch (IOException sqlEx) {
+                    try {
+                        return FileUtils.readFileToString(new File(path + ".py"), StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        log.warn("failed to load file {}", path, e);
+                    }
                 }
             }
             return path;
@@ -283,9 +287,9 @@ public class AdfConverter {
         SpecScript script = new SpecScript();
         if (pipeline.getProperties() != null && pipeline.getProperties().getFolder() != null) {
             String folderPath = pipeline.getProperties().getFolder().getName();
-            script.setPath(folderPath + "/" + pipeline.getName());
+            script.setPath(folderPath + "/" + getValidName(pipeline.getName()));
         } else {
-            script.setPath(pipeline.getName());
+            script.setPath(getValidName(pipeline.getName()));
         }
 
         SpecScriptRuntime specScriptRuntime = new SpecScriptRuntime();
@@ -298,7 +302,7 @@ public class AdfConverter {
         SpecNodeOutput output = new SpecNodeOutput();
         output.setData(id);
         output.setArtifactType(ArtifactType.NODE_OUTPUT);
-        output.setRefTableName(name);
+        output.setRefTableName(getValidName(name));
         return ImmutableList.of(output);
     }
 
