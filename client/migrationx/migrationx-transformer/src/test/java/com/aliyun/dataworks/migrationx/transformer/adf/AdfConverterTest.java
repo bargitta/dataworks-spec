@@ -75,6 +75,12 @@ public class AdfConverterTest {
         Assert.assertEquals(1, AdfConverter.toTimeoutInHours("0.1:00:00"));
     }
 
+    @Test
+    public void testGetValidName() {
+        Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh-DDI    After RetailBI Ready"));
+        Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh    DDI    After RetailBI Ready"));
+        Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh DDI After RetailBI Ready"));
+    }
     private AdfConf prepareAdfConf(String path) throws IOException {
         String fileContent = FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
         return JSONUtils.parseObject(fileContent, AdfConf.class);
