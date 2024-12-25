@@ -60,7 +60,7 @@ public class AdfConverter {
         SpecWorkflow flow = new SpecWorkflow();
         String flowId = generateId(pipeline.getName());
         flow.setId(flowId);
-        flow.setName(pipeline.getName());
+        flow.setName(getValidName(pipeline.getName()));
         flow.setScript(getFlowSpecScript(pipeline));
         flow.setOutputs(getOutput(flowId, pipeline.getName())); // 本workflow的输出，供其他flow做依赖
         flow.setType(FlowType.CYCLE_WORKFLOW.getLabel());
@@ -105,7 +105,7 @@ public class AdfConverter {
         for (Pipeline.PipelineProperty.Activity activity : activities) {
             SpecNode node = new SpecNode();
             nodes.add(node);
-            node.setName(activity.getName());
+            node.setName(getValidName(activity.getName()));
             node.setId(generateId(pipelineName + activity.getName()));
             node.setDescription(activity.getDescription());
 
@@ -149,6 +149,10 @@ public class AdfConverter {
                 }
             }
         }
+    }
+
+    private static String getValidName(String name) {
+        return name.replaceAll("\\s+", "_");
     }
 
     private SpecSubFlow getSubflow(Pipeline.PipelineProperty.Activity activity) throws NoSuchAlgorithmException {
