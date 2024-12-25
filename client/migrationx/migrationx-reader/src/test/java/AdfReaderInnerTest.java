@@ -4,26 +4,39 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.List;
 
 @Ignore
 public class AdfReaderInnerTest {
     private static final String token = "get token from https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/list-by-factory?view=rest-datafactory-2018-06-01&tabs=HTTP&tryIt=true&source=docs#code-try-0";
     private static final String factory = "chenxi-df";
+    private static final String host = "https://management.azure.com";
 
-    private static final String resrouceGroupName = "datafactory-rg923";
+    private static final String resourceGroupName = "datafactory-rg923";
     private static final String id = "097597a0-5749-49fa-968c-e556a3ea8a76";
 
 
     @Test
     public void test_export() throws Exception {
         File file = new File("/Users/xichen/Documents/adf");
-        AdfReader reader = new AdfReader(token, id, resrouceGroupName, factory, file, null);
-        List<JsonObject> triggers = reader.listTriggers();
+        AdfReader reader = new AdfReader(token, id, resourceGroupName, factory, file, null);
+        List<JsonObject> triggers = reader.listResources(MessageFormat.format(
+                host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DataFactory" +
+                        "/factories/{2}/triggers?api-version=2018-06-01",
+                id,
+                resourceGroupName, factory));
         System.out.println(triggers);
-        List<JsonObject> pipelines = reader.listPipelines();
+        List<JsonObject> pipelines = reader.listResources(MessageFormat.format(
+                host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
+                        + ".DataFactory/factories/{2}/pipelines?api-version=2018-06-01", id,
+                resourceGroupName, factory));
         System.out.println(pipelines);
-        List<JsonObject> services = reader.listLinkedServices();
+        List<JsonObject> services = reader.listResources(MessageFormat.format(
+                host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
+                        + ".DataFactory/factories/{2}/linkedservices?api-version=2018-06-01",
+                id,
+                resourceGroupName, factory));
         System.out.println(services);
     }
 }

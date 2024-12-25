@@ -55,7 +55,6 @@ public class AdfReader {
         }
     }
 
-
     public File export() throws Exception {
         File parent = new File(exportFile.getParentFile(), StringUtils.split(exportFile.getName(), ".")[0]);
 
@@ -91,17 +90,24 @@ public class AdfReader {
 
     private void exportLinkedServices(File factoryDir) throws Exception {
         File curFactory = new File(factoryDir, this.factory);
-        List<JsonObject> linkedServices = listLinkedServices();
+        List<JsonObject> linkedServices = listResources(MessageFormat.format(
+                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
+                        + ".DataFactory/factories/{2}/linkedservices?api-version=2018-06-01",
+                subscriptionId,
+                resourceGroupName, factory));
         if (CollectionUtils.isNotEmpty(linkedServices)) {
             FileUtils.writeStringToFile(new File(curFactory, LINKED_SERVICE + JSON_SUFFIX), GsonUtils.toJsonString(linkedServices),
                     StandardCharsets.UTF_8);
         }
     }
 
-
     public void exportPipelines(File factoryDir) throws Exception {
         File curFactory = new File(factoryDir, this.factory);
-        List<JsonObject> pipelines = listPipelines();
+        String url = MessageFormat.format(
+                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
+                        + ".DataFactory/factories/{2}/pipelines?api-version=2018-06-01", this.subscriptionId,
+                this.resourceGroupName, this.factory);
+        List<JsonObject> pipelines = listResources(url);
         if (CollectionUtils.isNotEmpty(pipelines)) {
             FileUtils.writeStringToFile(new File(curFactory, PIPELINE + JSON_SUFFIX), GsonUtils.toJsonString(pipelines), StandardCharsets.UTF_8);
         }
@@ -109,17 +115,17 @@ public class AdfReader {
 
     public void exportTriggers(File factoryDir) throws Exception {
         File curFactory = new File(factoryDir, this.factory);
-        List<JsonObject> pipelines = listTriggers();
-        if (CollectionUtils.isNotEmpty(pipelines)) {
-            FileUtils.writeStringToFile(new File(curFactory, TRIGGER + JSON_SUFFIX), GsonUtils.toJsonString(pipelines), StandardCharsets.UTF_8);
+        List<JsonObject> triggers = listResources(MessageFormat.format(
+                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DataFactory" +
+                        "/factories/{2}/triggers?api-version=2018-06-01",
+                this.subscriptionId,
+                this.resourceGroupName, this.factory));
+        if (CollectionUtils.isNotEmpty(triggers)) {
+            FileUtils.writeStringToFile(new File(curFactory, TRIGGER + JSON_SUFFIX), GsonUtils.toJsonString(triggers), StandardCharsets.UTF_8);
         }
     }
 
-    public List<JsonObject> listPipelines() throws Exception {
-        String url = MessageFormat.format(
-                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
-                        + ".DataFactory/factories/{2}/pipelines?api-version=2018-06-01", this.subscriptionId,
-                this.resourceGroupName, this.factory);
+    public List<JsonObject> listResources(String url) throws Exception {
         List<JsonObject> pipelines = new ArrayList<>();
         do {
             JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {
@@ -133,34 +139,7 @@ public class AdfReader {
                 url = null;
             }
         } while (url != null);
-
         return pipelines;
-    }
-
-    public List<JsonObject> listTriggers() throws Exception {
-        String url = MessageFormat.format(
-                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DataFactory" +
-                        "/factories/{2}/triggers?api-version=2018-06-01",
-                this.subscriptionId,
-                this.resourceGroupName, this.factory);
-        JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {
-        }.getType());
-        JsonArray jsonArray = jsonObject.get("value").getAsJsonArray();
-        return GsonUtils.gson.fromJson(jsonArray, new TypeToken<List<JsonObject>>() {
-        }.getType());
-    }
-
-    public List<JsonObject> listLinkedServices() throws Exception {
-        String url = MessageFormat.format(
-                this.host + "/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft"
-                        + ".DataFactory/factories/{2}/linkedservices?api-version=2018-06-01",
-                subscriptionId,
-                resourceGroupName, factory);
-        JsonObject jsonObject = GsonUtils.fromJsonString(executeGet(url, token), new TypeToken<JsonObject>() {
-        }.getType());
-        JsonArray jsonArray = jsonObject.get("value").getAsJsonArray();
-        return GsonUtils.gson.fromJson(jsonArray, new TypeToken<List<JsonObject>>() {
-        }.getType());
     }
 
     private static String executeGet(String url, String token) throws Exception {
