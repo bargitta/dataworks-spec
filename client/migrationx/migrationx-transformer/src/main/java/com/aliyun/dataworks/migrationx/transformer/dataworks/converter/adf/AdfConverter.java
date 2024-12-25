@@ -151,7 +151,7 @@ public class AdfConverter {
         }
     }
 
-    private static String getValidName(String name) {
+    public static String getValidName(String name) {
         return name.replaceAll("\\s+", "_");
     }
 
