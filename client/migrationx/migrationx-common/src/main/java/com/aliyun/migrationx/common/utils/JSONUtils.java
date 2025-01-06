@@ -27,6 +27,7 @@ import java.util.TimeZone;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -212,7 +213,7 @@ public class JSONUtils {
             objectMapper.readTree(json);
             return true;
         } catch (IOException e) {
-            logger.error("check json object valid exception: {}", json);
+            logger.warn("check json object valid exception: {}", json);
         }
 
         return false;
@@ -353,6 +354,22 @@ public class JSONUtils {
         }
 
         return json.getBytes(UTF_8);
+    }
+
+    public static JsonNode readObjFromParser(JsonParser jsonParser) {
+        if (jsonParser == null) {
+            return null;
+        }
+        try {
+            while (jsonParser.nextToken() != null) {
+                if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
+                    return objectMapper.readTree(jsonParser);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("read json node from json parser error", e);
+        }
+        return null;
     }
 
     public static JsonNode parseObject(String text) {

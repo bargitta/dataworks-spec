@@ -28,21 +28,23 @@ public class FlowSpecConverterContext {
 
     private Map<String, Long> idCodeMap = new HashMap<>();
 
-    private boolean onlineProcess;
+    private final Map<String, String> nodeTypeMap = new HashMap<>();
 
-    private boolean onlineSchedule;
+    private Boolean onlineProcess;
 
-    private long projectCode;
+    private Boolean onlineSchedule;
 
-    private int userId = 1;
+    private Long projectCode;
+
+    private Integer userId = 1;
 
     private String workerGroup = "default";
 
     private String tenantCode = "default";
 
-    private long environmentCode = -1L;
+    private Long environmentCode = -1L;
 
-    private int defaultDatasourceId = 1;
+    private Integer defaultDatasourceId = 1;
 
     private String defaultDatasourceType = "MYSQL";
 

@@ -9,6 +9,7 @@
 package com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.v320.task.dependent;
 
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.parameters.AbstractParameters;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.v320.task.Dependence;
 import lombok.Data;
 
 /**

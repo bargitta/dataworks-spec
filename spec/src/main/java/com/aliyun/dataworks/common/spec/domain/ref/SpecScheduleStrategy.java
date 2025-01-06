@@ -17,6 +17,7 @@ package com.aliyun.dataworks.common.spec.domain.ref;
 
 import com.aliyun.dataworks.common.spec.domain.enums.FailureStrategy;
 import com.aliyun.dataworks.common.spec.domain.enums.NodeInstanceModeType;
+import com.aliyun.dataworks.common.spec.domain.enums.NodeRecurrenceType;
 import com.aliyun.dataworks.common.spec.domain.enums.NodeRerunModeType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -51,4 +52,6 @@ public class SpecScheduleStrategy {
      * 失败策略
      */
     private FailureStrategy failureStrategy;
+
+    private NodeRecurrenceType recurrenceType;
 }

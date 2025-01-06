@@ -30,4 +30,6 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 public class QueryResourceListRequest extends DolphinSchedulerRequest {
     private String type;
+    private String fullName;
+    private String tenantCode;
 }

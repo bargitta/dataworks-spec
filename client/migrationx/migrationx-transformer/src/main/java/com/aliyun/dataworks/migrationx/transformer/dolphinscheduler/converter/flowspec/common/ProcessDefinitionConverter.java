@@ -37,6 +37,8 @@ import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
 import com.aliyun.migrationx.common.utils.JSONUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -52,7 +54,7 @@ public class ProcessDefinitionConverter extends AbstractCommonConverter<ProcessD
     private final DataWorksWorkflowSpec spec;
 
     public ProcessDefinitionConverter(DataWorksWorkflowSpec spec, SpecWorkflow workflow, ProcessDefinition processDefinition,
-        FlowSpecConverterContext context) {
+                                      FlowSpecConverterContext context) {
         super(Objects.nonNull(processDefinition) ? processDefinition : new ProcessDefinition(), context);
         this.workflow = workflow;
         this.spec = spec;
@@ -76,12 +78,12 @@ public class ProcessDefinitionConverter extends AbstractCommonConverter<ProcessD
 
         // common fields
         result.setVersion(Constants.VERSION_FIRST);
-        result.setReleaseState(context.isOnlineProcess() ? ReleaseState.ONLINE : ReleaseState.OFFLINE);
-        result.setProjectCode(context.getProjectCode());
+        result.setReleaseState(BooleanUtils.isTrue(context.getOnlineProcess()) ? ReleaseState.ONLINE : ReleaseState.OFFLINE);
+        result.setProjectCode(ObjectUtils.defaultIfNull(context.getProjectCode(), 0L));
         result.setCreateTime(new Date());
         result.setUpdateTime(new Date());
         result.setFlag(Flag.YES);
-        result.setUserId(context.getUserId());
+        result.setUserId(ObjectUtils.defaultIfNull(context.getUserId(), 1));
         result.setUserName(null);
         result.setProjectName(null);
 

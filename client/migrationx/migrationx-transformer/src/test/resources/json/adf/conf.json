@@ -1,0 +1,12 @@
+{
+  "locale": "zh_CN",
+  "settings": {
+    "triggers": {
+      "trigger1": "15 30 12 * * ?",
+      "trigger2": "0 0 0 * * 5L"
+    },
+    "nodeTypeMappings": {
+    },
+    "unknownNodeType": "DIDE_SHELL"
+  }
+}

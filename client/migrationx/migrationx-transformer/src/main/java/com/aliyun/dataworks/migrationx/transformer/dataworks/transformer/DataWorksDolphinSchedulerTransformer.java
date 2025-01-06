@@ -91,6 +91,7 @@ public class DataWorksDolphinSchedulerTransformer extends AbstractPackageTransfo
                 throw new RuntimeException(String.format("format % error", this.dataWorksTransformerConfig.getFormat()));
         }
         TransformerContext.getCollector().setTransformerType(dataWorksTransformerConfig.getFormat().name());
+        TransformerContext.getContext().setSourceDir(sourcePackage.getPackageFile());
         this.targetPackageFileService.setLocale(this.dataWorksTransformerConfig.getLocale());
     }
 

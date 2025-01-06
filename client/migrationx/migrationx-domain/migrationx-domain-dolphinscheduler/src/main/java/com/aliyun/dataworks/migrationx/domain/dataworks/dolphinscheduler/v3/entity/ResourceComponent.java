@@ -24,11 +24,29 @@ public class ResourceComponent {
     private String name;
     private String currentDir;
     private String fullName;
+    private String fileName;
     private String description;
     private boolean dirctory;
+    private boolean directory;
     private String idValue;
     private String type;
     protected List<ResourceComponent> children = new ArrayList<>();
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public boolean isDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(boolean directory) {
+        this.directory = directory;
+    }
 
     public int getId() {
         return id;

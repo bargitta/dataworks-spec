@@ -22,6 +22,20 @@ public class TransformerContext {
     private File checkpoint;
     private File load;
 
+    private File sourceDir;
+
+    private File customResourceDir;
+
+    private String scriptDir;
+
+    public String getScriptDir() {
+        return scriptDir;
+    }
+
+    public void setScriptDir(String scriptDir) {
+        this.scriptDir = scriptDir;
+    }
+
     public File getCheckpoint() {
         return checkpoint;
     }
@@ -77,5 +91,28 @@ public class TransformerContext {
 
     public static void clear() {
         threadLocal.remove();
+    }
+
+    public File getSourceDir() {
+        return sourceDir;
+    }
+
+    public void setSourceDir(File sourceDir) {
+        this.sourceDir = sourceDir;
+    }
+
+    public File getCustomResourceDir() {
+        return customResourceDir;
+    }
+
+    public void setCustomResourceDir(String resourceDir) {
+        if (StringUtils.isEmpty(resourceDir)) {
+            return;
+        }
+        File file = new File(resourceDir);
+        if (!file.exists()) {
+            throw new RuntimeException(String.format("resource dir %s with parameter rs not exists", resourceDir));
+        }
+        this.customResourceDir = file;
     }
 }

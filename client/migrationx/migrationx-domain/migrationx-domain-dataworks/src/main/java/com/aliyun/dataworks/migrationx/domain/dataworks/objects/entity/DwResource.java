@@ -15,9 +15,13 @@
 
 package com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Joiner;
 import lombok.ToString;
 
 /**
@@ -94,7 +98,11 @@ public class DwResource extends Resource {
 
     @Override
     public String getUniqueKey() {
-        String str = getName();
+        List<String> parts = new ArrayList<>();
+        Optional.ofNullable(workflowRef).ifPresent(workflow -> parts.add(workflow.getUniqueKey()));
+        parts.add(getName());
+        Optional.ofNullable(getFolder()).ifPresent(parts::add);
+        String str = Joiner.on("#").join(parts);
         return UUID.nameUUIDFromBytes(str.getBytes()).toString();
     }
 }

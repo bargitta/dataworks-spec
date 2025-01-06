@@ -51,11 +51,18 @@ public class SpecNodeListConverter extends AbstractCommonConverter<List<SpecNode
         taskTypeOrderList.add(TaskType.SUB_PROCESS);
         taskTypeOrderList.add(TaskType.DEPENDENT);
         taskTypeOrderList.add(TaskType.CONDITIONS);
+
+        // other task types
+        for (TaskType value : TaskType.values()) {
+            if (!taskTypeOrderList.contains(value)) {
+                taskTypeOrderList.add(value);
+            }
+        }
         TASK_TYPE_ORDER = Collections.unmodifiableList(taskTypeOrderList);
     }
 
     public SpecNodeListConverter(DataWorksWorkflowSpec spec, SpecWorkflow specWorkflow, List<TaskDefinition> taskDefinitionList,
-        DolphinSchedulerV3ConverterContext context) {
+                                 DolphinSchedulerV3ConverterContext context) {
         super(context);
         this.spec = spec;
         this.taskDefinitionList = taskDefinitionList;
@@ -83,7 +90,7 @@ public class SpecNodeListConverter extends AbstractCommonConverter<List<SpecNode
         A dolphin node may be converted into multiple spec nodes. You need to identify the beginning and end of the converted spec nodes of each
         dolphin node for subsequent node relationship analysis.
          */
-        context.getNodeHeadMap().put(taskDefinition.getCode(), converter.getHeadList());
-        context.getNodeTailMap().put(taskDefinition.getCode(), converter.getTailList());
+        context.getEntityHeadMap().put(taskDefinition.getCode(), converter.getHeadList());
+        context.getEntityTailMap().put(taskDefinition.getCode(), converter.getTailList());
     }
 }

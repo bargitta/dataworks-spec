@@ -36,7 +36,12 @@ public enum NodeRecurrenceType implements LabelEnum {
     /**
      * skip scheduling
      */
-    SKIP("Skip");
+    SKIP("Skip"),
+
+    /**
+     * None auto schedule
+     */
+    NONE_AUTO("NoneAuto");
 
     private final String label;
 

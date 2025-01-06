@@ -1,0 +1,23 @@
+{
+  "transformer": {
+    "name": "airflow_to_flowspec",
+    "params": [
+      "-a airflowv2_to_dataworks",
+      "-d ${AIRFLOW_V2_DAG_FOLDER}",
+      "-o ${FLOWSPECT_FOLDER_FOR_AIRFLOW_DAGS}",
+      "-m ${MIGRATIONX_HOME}/conf/flowspec-airflowV2-transformer-config.json"
+    ]
+  },
+  "writer": {
+    "name": "flowspec_to_dataworks",
+    "params": [
+      "-a flowspec_to_dataworks",
+      "-e dataworks.${ALIYUN_REGION_ID}.aliyuncs.com",
+      "-i ${ALIYUN_ACCESS_KEY_ID}",
+      "-k ${ALIYUN_ACCESS_KEY_SECRET}",
+      "-p ${ALIYUN_DATAWORKS_WORKSPACE_ID}",
+      "-r ${ALIYUN_REGION_ID}",
+      "-f ${FLOWSPECT_FOLDER_FOR_AIRFLOW_DAGS}"
+    ]
+  }
+}

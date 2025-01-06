@@ -9,13 +9,15 @@ public class DataWorksMigrationAssistWriterTest {
     @Test
     public void test1() throws Exception {
         DataWorksMigrationAssistWriter writer = new DataWorksMigrationAssistWriter();
+        String baseDir = "/Users/xx/Documents/workspace/alibabacloud-dataworks-tool-migration";
+        String source = String.format("%s/temp/target3.zip", baseDir);
         String[] args = new String[]{
-                "-e", "dataworks.cn-shenzhen.aliyuncs.com",  //endpoint
-                "-i", "xxx",  //accessId
+                //"-e", "dataworks.cn-shenzhen.aliyuncs.com",  //endpoint
+                "-i", "xx",  //accesasdsId
                 "-k", "xxx",  //accessKey
-                "-r", "cn-shenzhen",   //regionId
-                "-p", "81780",   //projectId
-                "-f", "../../temp/target3.zip",    //file
+                "-r", "cn-shanghai",   //regionId
+                "-p", "483776",   //projectId
+                "-f", source,    //file
                 "-t", "SPEC",   //spect
         };
         writer.run(args);

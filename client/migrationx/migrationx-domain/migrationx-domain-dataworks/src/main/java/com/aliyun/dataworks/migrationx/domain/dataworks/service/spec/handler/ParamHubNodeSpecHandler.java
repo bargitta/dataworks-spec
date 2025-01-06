@@ -16,6 +16,7 @@
 package com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.handler;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
@@ -25,6 +26,7 @@ import com.aliyun.dataworks.common.spec.domain.enums.SpecVersion;
 import com.aliyun.dataworks.common.spec.domain.enums.VariableType;
 import com.aliyun.dataworks.common.spec.domain.noref.SpecParamHub;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecVariable;
 import com.aliyun.dataworks.common.spec.parser.SpecParserContext;
 import com.aliyun.dataworks.common.spec.utils.SpecDevUtil;
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.entity.DwNodeEntity;
@@ -49,11 +51,11 @@ public class ParamHubNodeSpecHandler extends BasicNodeSpecHandler {
     public SpecNode handle(DwNodeEntity orcNode) {
         Preconditions.checkArgument(orcNode != null);
         SpecNode specNode = super.handle(orcNode);
-        specNode.setParamHub(buildParamHub(orcNode));
+        specNode.setParamHub(buildParamHub(orcNode, specNode));
         return specNode;
     }
 
-    private SpecParamHub buildParamHub(DwNodeEntity orcNode) {
+    private SpecParamHub buildParamHub(DwNodeEntity orcNode, SpecNode specNode) {
         SpecParserContext ctx = new SpecParserContext();
         ctx.setVersion(SpecVersion.V_1_1_0.getLabel());
         return Optional.ofNullable(orcNode.getCode()).filter(StringUtils::isNotBlank)
@@ -69,6 +71,14 @@ public class ParamHubNodeSpecHandler extends BasicNodeSpecHandler {
                         .map(refVar -> Joiner.on(":").join(refVar.getNode().getOutput().getData(), refVar.getName()))
                         .orElse(var.getValue())));
                 return paramHub;
-            }).orElse(new SpecParamHub());
+            })
+            .orElseGet(() -> {
+                SpecParamHub hub = new SpecParamHub();
+                hub.setVariables(ListUtils.emptyIfNull(specNode.getOutputs()).stream()
+                    .filter(out -> out instanceof SpecVariable)
+                    .map(out -> (SpecVariable)out)
+                    .collect(Collectors.toList()));
+                return hub;
+            });
     }
 }

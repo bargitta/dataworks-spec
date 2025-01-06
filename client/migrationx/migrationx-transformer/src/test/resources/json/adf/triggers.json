@@ -1,0 +1,88 @@
+[
+  {
+    "id": "/subscriptions/097597a0-5749-49fa-968c-e556a3ea8a76/resourceGroups/datafactory-rg923/providers/Microsoft.DataFactory/factories/chenxi-df/triggers/trigger1",
+    "name": "trigger1",
+    "type": "Microsoft.DataFactory/factories/triggers",
+    "properties": {
+      "description": "每天零点",
+      "annotations": [],
+      "pipelines": [
+        {
+          "pipelineReference": {
+            "referenceName": "parallel_activity",
+            "type": "PipelineReference"
+          },
+          "parameters": {}
+        },
+        {
+          "pipelineReference": {
+            "referenceName": "pipeline_department1_1",
+            "type": "PipelineReference"
+          },
+          "parameters": {}
+        }
+      ],
+      "type": "ScheduleTrigger",
+      "typeProperties": {
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1,
+          "startTime": "2024-11-15T08:05:00",
+          "endTime": "2025-12-31T11:55:30",
+          "timeZone": "China Standard Time",
+          "schedule": {
+            "minutes": [
+              0
+            ],
+            "hours": [
+              0
+            ]
+          }
+        }
+      },
+      "runtimeState": "Started"
+    },
+    "etag": "55002f30-0000-1900-0000-67481a6b0000"
+  },
+  {
+    "id": "/subscriptions/097597a0-5749-49fa-968c-e556a3ea8a76/resourceGroups/datafactory-rg923/providers/Microsoft.DataFactory/factories/chenxi-df/triggers/trigger2_loop2",
+    "name": "trigger2_loop2",
+    "type": "Microsoft.DataFactory/factories/triggers",
+    "properties": {
+      "annotations": [],
+      "runtimeState": "Stopped",
+      "pipelines": [],
+      "type": "ScheduleTrigger",
+      "typeProperties": {
+        "recurrence": {
+          "frequency": "Hour",
+          "interval": 1,
+          "startTime": "2024-11-18T08:28:00",
+          "timeZone": "China Standard Time"
+        }
+      }
+    },
+    "etag": "1300b1fd-0000-1900-0000-673ff6bf0000"
+  },
+  {
+    "id": "/subscriptions/097597a0-5749-49fa-968c-e556a3ea8a76/resourceGroups/datafactory-rg923/providers/Microsoft.DataFactory/factories/chenxi-df/triggers/trigger_loop1",
+    "name": "trigger_loop1",
+    "type": "Microsoft.DataFactory/factories/triggers",
+    "properties": {
+      "annotations": [],
+      "runtimeState": "Stopped",
+      "pipelines": [],
+      "type": "ScheduleTrigger",
+      "typeProperties": {
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1,
+          "startTime": "2024-11-18T08:28:00",
+          "timeZone": "China Standard Time",
+          "schedule": {}
+        }
+      }
+    },
+    "etag": "1300b2fd-0000-1900-0000-673ff6bf0000"
+  }
+]

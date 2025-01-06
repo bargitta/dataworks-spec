@@ -60,17 +60,17 @@ public class ForeachNodeSpecHandler extends BasicNodeSpecHandler {
         List<DwNodeEntity> innerNodes = getInnerNodes(orcNode);
         SpecForEach specForEach = new SpecForEach();
         specForEach.setNodes(innerNodes.stream()
-                .map(n -> getSpecAdapter().getHandler(n, context.getLocale()).handle(n))
-                .collect(Collectors.toList()));
-
+            .map(n -> getSpecAdapter().getHandler(n, context.getLocale()).handle(n))
+            .collect(Collectors.toList()));
+        specForEach.setMaxIterations(orcNode.getLoopCount());
         specForEach.setFlow(innerNodes.stream().map(node -> getSpecAdapter().toFlow(this, node, context)).flatMap(List::stream)
-                .collect(Collectors.toList()));
+            .collect(Collectors.toList()));
         ListUtils.emptyIfNull(Optional.ofNullable(specNode.getScript()).map(SpecScript::getParameters).orElse(null)).stream()
-                .filter(Objects::nonNull)
-                .filter(in -> StringUtils.equals(TRAVERSE_INPUT_VARIABLE_NAME, in.getName())).findFirst().ifPresent(in -> {
-                    specForEach.setArray(in);
-                    specNode.getInputs().remove(in);
-                });
+            .filter(Objects::nonNull)
+            .filter(in -> StringUtils.equals(TRAVERSE_INPUT_VARIABLE_NAME, in.getName())).findFirst().ifPresent(in -> {
+                specForEach.setArray(in);
+                specNode.getInputs().remove(in);
+            });
         return specForEach;
     }
 }

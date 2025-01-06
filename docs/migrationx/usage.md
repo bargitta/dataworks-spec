@@ -1,3 +1,35 @@
+# AirWorks
+Use case of client tool `AirWorks` transforming Airflow DAGs to DataWorks workflows with all steps in a single command
+
+## Airflow DAGs to DataWorks workflows transformation in a single command
+
+### Step1: setup environment variables
+```shell
+# environment variables for transforming Airflow DAGs
+export PYTHON_HOME=/path/to/python/home/which/is/used/by/airflow
+export PATH=${PYTHON_HOME}/bin:${PATH}
+export AIRFLOW_V2_DAG_FOLDER=/path/to/airflow/dags/floder/
+export FLOWSPECT_FOLDER_FOR_AIRFLOW_DAGS=/path/to/folder/for/saving/exported/flowspecs/
+export MIGRATIONX_HOME=/path/to/migration/tool/root/folder/
+
+# environment variables fro commiting to DataWorks
+export ALIYUN_REGION_ID=dataworks-located-region(e.g. cn-shanghai)
+export ALIYUN_ACCESS_KEY_ID=your_access_key_id
+export ALIYUN_ACCESS_KEY_SECRET=your_access_key_secret
+export ALIYUN_DATAWORKS_WORKSPACE_ID=your_dataworks_workspace_id
+```
+
+### Step2: customize DAG operators transformation settings 
+A default configuration file [flowspec-airflowV2-transformer-config.json](../../client/migrationx-transformer/src/main/conf/flowspec-airflowV2-transformer-config.json) is provided, it can be customized according to your needs.
+- Customize imported workflow location in IDE, you can assign expected path to key `workflowPathPrefix`
+- Customize `HiveOperator` targeting node implementation to `ODPS_SQL` in DataWorks, you can overwrite corresponding entry with `"HiveOperator": "ODPS_SQL"` 
+
+### Step3: run AirWorks
+```shell
+bin/airworks.py
+```
+
+
 # MigrationX
 
 Use case of client tool `MigrationX` transforming data from DolphinScheduler to DataWorks with all steps in one command line run

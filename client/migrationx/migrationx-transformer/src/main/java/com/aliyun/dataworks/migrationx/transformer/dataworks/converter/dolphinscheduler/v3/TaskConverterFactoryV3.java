@@ -62,6 +62,8 @@ public class TaskConverterFactoryV3 {
                 return new DataxParameterConverter(processMeta, taskDefinition, converterContext);
             case SQOOP:
                 return new SqoopParameterConverter(processMeta, taskDefinition, converterContext);
+            case DLC:
+                return new DLCParameterConverter(processMeta, taskDefinition, converterContext);
             default:
                 throw new UnSupportedTypeException(taskDefinition.getTaskType());
         }

@@ -20,8 +20,10 @@ import java.util.Set;
 
 import com.aliyun.dataworks.common.spec.annotation.SpecParser;
 import com.aliyun.dataworks.common.spec.domain.noref.SpecSubFlow;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecWorkflow;
 import com.aliyun.dataworks.common.spec.parser.Parser;
 import com.aliyun.dataworks.common.spec.parser.SpecParserContext;
+import com.aliyun.dataworks.common.spec.utils.ObjectUtils;
 import com.aliyun.dataworks.common.spec.utils.SpecDevUtil;
 import com.google.common.collect.Sets;
 
@@ -36,7 +38,9 @@ public class SubFlowParser implements Parser<SpecSubFlow> {
 
     @Override
     public SpecSubFlow parse(Map<String, Object> rawContext, SpecParserContext specParserContext) {
+        SpecWorkflow workflow = (SpecWorkflow)SpecDevUtil.getObjectByParser(SpecWorkflow.class, rawContext, specParserContext);
         SpecSubFlow specCombined = new SpecSubFlow();
+        ObjectUtils.copyProperties(workflow, specCombined);
         SpecDevUtil.setSameKeyField(rawContext, specCombined, specParserContext);
         return specCombined;
     }

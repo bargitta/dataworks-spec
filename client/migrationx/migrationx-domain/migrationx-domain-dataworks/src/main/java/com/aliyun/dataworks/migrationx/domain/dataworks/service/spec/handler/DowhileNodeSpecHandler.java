@@ -26,7 +26,6 @@ import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecScript;
 import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.entity.DwNodeEntity;
-
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -58,21 +57,22 @@ public class DowhileNodeSpecHandler extends BasicNodeSpecHandler {
     private SpecDoWhile buildDoWhile(DwNodeEntity orcNode, SpecHandlerContext context) {
         List<DwNodeEntity> innerNodes = getInnerNodes(orcNode);
         SpecDoWhile specDoWhile = new SpecDoWhile();
+        specDoWhile.setMaxIterations(orcNode.getLoopCount());
         specDoWhile.setNodes(innerNodes.stream()
-                .map(n -> getSpecAdapter().getHandler(n, context.getLocale()).handle(n))
-                .filter(n -> !StringUtils.equalsIgnoreCase(
-                        CodeProgramType.CONTROLLER_CYCLE_END.name(),
-                        Optional.ofNullable(n).map(SpecNode::getScript).map(SpecScript::getRuntime).map(SpecScriptRuntime::getCommand).orElse(null)))
-                .collect(Collectors.toList()));
+            .map(n -> getSpecAdapter().getHandler(n, context.getLocale()).handle(n))
+            .filter(n -> !StringUtils.equalsIgnoreCase(
+                CodeProgramType.CONTROLLER_CYCLE_END.name(),
+                Optional.ofNullable(n).map(SpecNode::getScript).map(SpecScript::getRuntime).map(SpecScriptRuntime::getCommand).orElse(null)))
+            .collect(Collectors.toList()));
         specDoWhile.setSpecWhile(innerNodes.stream()
-                .map(n -> getSpecAdapter().getHandler(n, context.getLocale()).handle(n))
-                .filter(n -> StringUtils.equalsIgnoreCase(
-                        CodeProgramType.CONTROLLER_CYCLE_END.name(),
-                        Optional.ofNullable(n).map(SpecNode::getScript).map(SpecScript::getRuntime).map(SpecScriptRuntime::getCommand).orElse(null)))
-                .findFirst().orElse(null));
+            .map(n -> getSpecAdapter().getHandler(n, context.getLocale()).handle(n))
+            .filter(n -> StringUtils.equalsIgnoreCase(
+                CodeProgramType.CONTROLLER_CYCLE_END.name(),
+                Optional.ofNullable(n).map(SpecNode::getScript).map(SpecScript::getRuntime).map(SpecScriptRuntime::getCommand).orElse(null)))
+            .findFirst().orElse(null));
         specDoWhile.setFlow(innerNodes.stream()
-                .map(node -> getSpecAdapter().toFlow(this, node, context)).flatMap(List::stream)
-                .collect(Collectors.toList()));
+            .map(node -> getSpecAdapter().toFlow(this, node, context)).flatMap(List::stream)
+            .collect(Collectors.toList()));
         return specDoWhile;
     }
 }

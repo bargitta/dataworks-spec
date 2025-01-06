@@ -59,6 +59,7 @@ import com.aliyun.dataworks.common.spec.domain.ref.SpecTable;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecTrigger;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecVariable;
 import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
+import com.aliyun.dataworks.common.spec.domain.ref.runtime.container.SpecContainer;
 import com.aliyun.dataworks.common.spec.utils.VariableUtils;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.NodeContext;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.NodeIo;
@@ -70,14 +71,13 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.entity.DwNo
 import com.aliyun.dataworks.migrationx.domain.dataworks.utils.DefaultNodeTypeUtils;
 import com.aliyun.dataworks.migrationx.domain.dataworks.utils.FolderUtils;
 import com.aliyun.migrationx.common.utils.DateUtils;
-import com.aliyun.migrationx.common.utils.GsonUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -123,17 +123,18 @@ public class BasicNodeSpecHandler extends AbstractEntityHandler<DwNodeEntity, Sp
         specNode.setName(dmNode.getName());
         specNode.setOwner(dmNode.getOwner());
         specNode.setDescription(dmNode.getDescription());
+        specNode.setAutoParse(Objects.equals(1, dmNode.getIsAutoParse()));
+        // default recurrence type normal
+        specNode.setRecurrence(NodeRecurrenceType.NORMAL);
         NodeUseType useType = Optional.ofNullable(dmNode.getNodeUseType()).orElse(NodeUseType.SCHEDULED);
         if (useType == NodeUseType.SKIP) {
             specNode.setRecurrence(NodeRecurrenceType.SKIP);
         }
-        Optional.ofNullable(dmNode.getPauseSchedule()).ifPresent(pause -> {
-            if (pause) {
-                specNode.setRecurrence(NodeRecurrenceType.PAUSE);
-            } else {
-                specNode.setRecurrence(NodeRecurrenceType.NORMAL);
-            }
-        });
+
+        if (BooleanUtils.isTrue(dmNode.getPauseSchedule())) {
+            specNode.setRecurrence(NodeRecurrenceType.PAUSE);
+        }
+
         Optional.ofNullable(dmNode.getRerunMode()).ifPresent(rerunMode -> {
             switch (rerunMode) {
                 case ALL_DENIED: {
@@ -163,11 +164,8 @@ public class BasicNodeSpecHandler extends AbstractEntityHandler<DwNodeEntity, Sp
         }).orElse(NodeInstanceModeType.T_PLUS_1));
 
         specNode.setPriority(dmNode.getPriority());
-
-        specNode.setTimeout(Optional.ofNullable(dmNode.getExtraConfig())
-            .map(json -> GsonUtils.fromJsonString(json, new TypeToken<Map<String, Object>>() {}.getType()))
-            .map(map -> (Map<String, Object>)map)
-            .map(map -> MapUtils.getInteger(map, "alisaTaskKillTimeout")).orElse(null));
+        specNode.setIgnoreBranchConditionSkip(dmNode.getIgnoreBranchConditionSkip());
+        specNode.setTimeout(dmNode.getAlisaTaskKillTimeout());
         specNode.setRuntimeResource(Optional.ofNullable(dmNode.getResourceGroup()).map(resGroup -> {
             SpecRuntimeResource rt = new SpecRuntimeResource();
             rt.setResourceGroup(resGroup);
@@ -320,6 +318,12 @@ public class BasicNodeSpecHandler extends AbstractEntityHandler<DwNodeEntity, Sp
         SpecScriptRuntime sr = new SpecScriptRuntime();
         sr.setCommand(scr.getType());
         sr.setCommandTypeId(scr.getTypeId());
+        sr.setCu(scr.getCu());
+        Optional.ofNullable(scr.getImageId()).filter(StringUtils::isNotBlank).ifPresent(imageId -> {
+            SpecContainer container = new SpecContainer();
+            container.setImageId(imageId);
+            sr.setContainer(container);
+        });
         return sr;
     }
 
@@ -435,6 +439,7 @@ public class BasicNodeSpecHandler extends AbstractEntityHandler<DwNodeEntity, Sp
                 specTrigger.setCron(dmNodeBO.getCronExpress());
                 specTrigger.setStartTime(DateUtils.convertDateToString(dmNodeBO.getStartEffectDate()));
                 specTrigger.setEndTime(DateUtils.convertDateToString(dmNodeBO.getEndEffectDate()));
+                specTrigger.setCalendarId(dmNodeBO.getCalendarId());
                 break;
             }
             default: {

@@ -71,6 +71,11 @@ public enum AssetType {
     DOLPHINSCHEDULER("dolphinscheduler"),
 
     /**
+     * azure data factory
+     */
+    ADF("adf"),
+
+    /**
      * spec
      */
     SPEC("SPEC");

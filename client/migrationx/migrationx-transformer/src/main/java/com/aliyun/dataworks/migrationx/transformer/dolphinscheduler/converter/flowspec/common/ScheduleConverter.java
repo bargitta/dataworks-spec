@@ -21,6 +21,8 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.enum
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.v301.ReleaseState;
 import com.aliyun.dataworks.migrationx.transformer.dolphinscheduler.converter.flowspec.common.context.FlowSpecConverterContext;
 import com.aliyun.migrationx.common.utils.DateUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -63,17 +65,17 @@ public class ScheduleConverter extends AbstractCommonConverter<Schedule> {
         result.setWarningType(WarningType.NONE);
         result.setCreateTime(new Date());
         result.setUpdateTime(new Date());
-        result.setUserId(context.getUserId());
+        result.setUserId(ObjectUtils.defaultIfNull(context.getUserId(), 1));
         result.setUserName(null);
 
-        result.setReleaseState(context.isOnlineSchedule() ? ReleaseState.ONLINE : ReleaseState.OFFLINE);
+        result.setReleaseState(BooleanUtils.isTrue(context.getOnlineSchedule()) ? ReleaseState.ONLINE : ReleaseState.OFFLINE);
         processDefinition.setScheduleReleaseState(result.getReleaseState());
 
         result.setWarningGroupId(0);
         result.setProcessInstancePriority(Priority.MEDIUM);
         result.setWorkerGroup(StringUtils.defaultString(context.getWorkerGroup(), "default"));
         result.setTenantCode(StringUtils.defaultString(context.getTenantCode(), "default"));
-        result.setEnvironmentCode(context.getEnvironmentCode());
+        result.setEnvironmentCode(ObjectUtils.defaultIfNull(context.getEnvironmentCode(), -1L));
         result.setEnvironmentName(null);
         return result;
     }

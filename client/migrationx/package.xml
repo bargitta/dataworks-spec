@@ -206,6 +206,12 @@
             </includes>
             <outputDirectory>lib/common</outputDirectory>
         </fileSet>
-
+        <fileSet>
+            <directory>${project.basedir}/migrationx-transformer/src/main/python/deploy/airflow-workflow/</directory>
+            <includes>
+                <include>**</include>
+            </includes>
+            <outputDirectory>lib/python/airflow-workflow/</outputDirectory>
+        </fileSet>
     </fileSets>
 </assembly>

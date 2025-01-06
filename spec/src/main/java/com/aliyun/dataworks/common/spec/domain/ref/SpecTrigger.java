@@ -35,4 +35,8 @@ public class SpecTrigger extends SpecRefEntity {
     private String endTime;
     private String timezone;
     private Integer delaySeconds;
+    /**
+     * Scheduler custom calendarId
+     */
+    private Long calendarId;
 }

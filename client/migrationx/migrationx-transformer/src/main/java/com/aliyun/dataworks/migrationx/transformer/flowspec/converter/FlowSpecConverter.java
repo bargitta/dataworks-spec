@@ -8,6 +8,8 @@
 
 package com.aliyun.dataworks.migrationx.transformer.flowspec.converter;
 
+import java.util.List;
+
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
 import com.aliyun.dataworks.common.spec.domain.Specification;
 
@@ -25,6 +27,6 @@ public interface FlowSpecConverter<T> {
      * @param from origin obj
      * @return flowSpec result
      */
-    Specification<DataWorksWorkflowSpec> convert(T from);
+    List<Specification<DataWorksWorkflowSpec>> convert(T from);
 
 }

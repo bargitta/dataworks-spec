@@ -23,6 +23,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONWriter.Feature;
+
 import com.aliyun.dataworks.common.spec.SpecUtil;
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
 import com.aliyun.dataworks.common.spec.domain.Specification;
@@ -34,11 +38,13 @@ import com.aliyun.dataworks.common.spec.domain.noref.SpecDepend;
 import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecNodeOutput;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecScheduleStrategy;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecScript;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecWorkflow;
 import com.aliyun.dataworks.common.spec.domain.ref.component.SpecComponent;
 import com.aliyun.dataworks.common.spec.domain.ref.component.SpecComponentParameter;
 import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
+import com.aliyun.dataworks.common.spec.writer.SpecWriterContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -148,6 +154,7 @@ public class DataWorksNodeAdapterTest {
         DataWorksNodeAdapter dataWorksNodeAdapter = new DataWorksNodeAdapter(specObj, dowhile.getDoWhile().getSpecWhile());
         System.out.println(dataWorksNodeAdapter.getCode());
         System.out.println(dataWorksNodeAdapter.getInputs());
+        System.out.println(JSON.toJSONString(SpecUtil.write(dowhile, new SpecWriterContext()), Feature.PrettyFormat));
 
         DataWorksNodeAdapter dowhileAdapter = new DataWorksNodeAdapter(specObj, dowhile);
         Map<String, Object> extConfig = dowhileAdapter.getExtConfig();
@@ -969,10 +976,13 @@ public class DataWorksNodeAdapterTest {
         runtime.setCommand("WORKFLOW");
         script.setRuntime(runtime);
         specWorkflow.setScript(script);
+        SpecScheduleStrategy st = new SpecScheduleStrategy();
+        st.setRecurrenceType(NodeRecurrenceType.NONE_AUTO);
+        specWorkflow.setStrategy(st);
         spec.setWorkflows(Collections.singletonList(specWorkflow));
 
         DataWorksNodeAdapter adapter = new DataWorksNodeAdapter(specification, specWorkflow);
-
+        Assert.assertEquals(4, (int)adapter.getNodeType());
         Assert.assertNotNull(adapter.getInputs());
         Assert.assertEquals(1, adapter.getInputs().size());
         Assert.assertNotNull(adapter.getOutputs());
@@ -1001,5 +1011,40 @@ public class DataWorksNodeAdapterTest {
         Map<String, Object> extraConf = dataWorksNodeAdapter.getExtConfig();
         Assert.assertNotNull(extraConf);
         Assert.assertEquals(1, extraConf.get(DataWorksNodeAdapter.STREAM_LAUNCH_MODE));
+    }
+
+    @Test
+    public void testGetAdvanceSettings() {
+        Specification<DataWorksWorkflowSpec> sp = new Specification<>();
+        DataWorksWorkflowSpec spec = new DataWorksWorkflowSpec();
+        SpecNode node = new SpecNode();
+        node.setId("adb-spark-0");
+        node.setName("adb-spark-0");
+        SpecScript script = new SpecScript();
+        SpecScriptRuntime runtime = new SpecScriptRuntime();
+        Map<String, Object> config = new HashMap<>();
+        config.put("resourceGroupName", "spark_test");
+        runtime.setAdbJobConfig(config);
+        Map<String, Object> sparkConf = new HashMap<>();
+        sparkConf.put("spark.executor.cores", 4);
+        runtime.setSparkConf(sparkConf);
+        runtime.setCommand(CodeProgramType.ADB_SPARK.name());
+        script.setRuntime(runtime);
+        JSONObject sparkSubmitCode = new JSONObject();
+        sparkSubmitCode.put("command", "spark-submit --master yarn");
+        script.setContent(sparkSubmitCode.toJSONString());
+        node.setScript(script);
+        spec.setNodes(Collections.singletonList(node));
+        sp.setSpec(spec);
+
+        DataWorksNodeAdapter dataWorksNodeAdapter = new DataWorksNodeAdapter(sp, node);
+        dataWorksNodeAdapter.setContext(Context.builder().deployToScheduler(true).build());
+        JSONObject advanceSettings = JSON.parseObject(dataWorksNodeAdapter.getAdvanceSettings());
+        log.info("advance settings: {}, code: {}", advanceSettings, dataWorksNodeAdapter.getCode());
+        Assert.assertNotNull(advanceSettings);
+        Assert.assertEquals("spark_test", advanceSettings.getString("resourceGroupName"));
+        Assert.assertEquals("4", advanceSettings.getString("spark.executor.cores"));
+        Assert.assertEquals(4, (int)advanceSettings.getInteger("spark.executor.cores"));
+        Assert.assertEquals("spark-submit --master yarn", dataWorksNodeAdapter.getCode());
     }
 }

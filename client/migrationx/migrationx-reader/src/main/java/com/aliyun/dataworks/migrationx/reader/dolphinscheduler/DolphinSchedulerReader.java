@@ -48,6 +48,7 @@ import com.aliyun.migrationx.common.utils.PaginateUtils;
 import com.aliyun.migrationx.common.utils.ZipUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
@@ -76,17 +77,19 @@ public class DolphinSchedulerReader {
     private static final String PROJECTS_JSON = "projects.json";
 
     private final String version;
-    private final List<String> projects;
+    private List<String> projects;
+    private List<Long> codes;
     private List<Project> projectInfoList = new ArrayList<>();
     private Map<String, Long> projectNameToCodeMap = new HashMap<>();
     private final File exportFile;
     private Boolean skipResources = true;
     private final DolphinSchedulerApi dolphinSchedulerApiService;
 
-    public DolphinSchedulerReader(String endpoint, String token, String version, List<String> projects,
+    public DolphinSchedulerReader(String endpoint, String token, String version, List<String> projects, List<Long> codes,
             File exportFile) {
         this.version = version;
         this.projects = projects;
+        this.codes = codes;
         this.exportFile = exportFile;
         if (isVersion1()) {
             this.dolphinSchedulerApiService = new DolphinSchedulerApiService(endpoint, token);
@@ -153,21 +156,29 @@ public class DolphinSchedulerReader {
                 new DolphinSchedulerRequest());
 
         List<JsonObject> projectsList = response.getData();
-        if (CollectionUtils.isNotEmpty(this.projects)) {
-            projectsList = ListUtils.emptyIfNull(projectsList).stream()
-                    .filter(proj -> this.projects.stream()
-                            .anyMatch(p -> {
-                                if (StringUtils.equalsIgnoreCase(p, proj.get("name").getAsString())) {
-                                    if (isVersion2() || isVersion3()) {
-                                        Long code = proj.get("code").getAsLong();
-                                        projectNameToCodeMap.put(p, code);
-                                    }
-                                    return true;
-                                }
-                                return false;
-                            })
-                    )
-                    .collect(Collectors.toList());
+        projectsList = ListUtils.emptyIfNull(projectsList).stream()
+                .filter(proj -> {
+                    if (proj.has("name")) {
+                        if (this.projects.contains(proj.get("name").getAsString())) {
+                            return true;
+                        }
+                    }
+                    if (proj.has("code")) {
+                        if (this.codes.contains(proj.get("code").getAsLong())) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }).peek(proj -> {
+                    if (isVersion2() || isVersion3()) {
+                        String name = proj.get("name").getAsString();
+                        Long code = proj.get("code").getAsLong();
+                        projectNameToCodeMap.put(name, code);
+                    }
+                })
+                .collect(Collectors.toList());
+        if (this.projects.isEmpty()) {
+            this.projects.addAll(projectNameToCodeMap.keySet());
         }
 
         this.projectInfoList = ListUtils.emptyIfNull(projectsList).stream()
@@ -250,27 +261,9 @@ public class DolphinSchedulerReader {
             LOGGER.error("error make resource directory: {}", resourceDir);
             return;
         }
-
-        List<JsonObject> resources = new ArrayList<>();
+        List<JsonElement> resources = new ArrayList<>();
         Arrays.asList("FILE", "UDF").forEach(type -> {
-            try {
-                QueryResourceListRequest queryResourceListRequest = new QueryResourceListRequest();
-                queryResourceListRequest.setType(type);
-                Response<List<JsonObject>> response = dolphinSchedulerApiService.queryResourceList(
-                        queryResourceListRequest);
-                if (response.getData() == null) {
-                    log.error("queryResourceList response {}", JSONUtils.toJsonString(response));
-                    return;
-                }
-                resources.addAll(response.getData());
-                if (!BooleanUtils.isTrue(skipResources)) {
-                    List<ResourceComponent> resourceComponents = GsonUtils.fromJsonString(GsonUtils.toJsonString(response.getData()),
-                            new com.google.common.reflect.TypeToken<List<ResourceComponent>>() {}.getType());
-                    visitAndDownloadResource(resourceComponents, resourceDir.getAbsolutePath());
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+            visitResourceByFolder(type, null, resourceDir, resources);
         });
 
         try {
@@ -279,6 +272,70 @@ public class DolphinSchedulerReader {
                     GsonUtils.toJsonString(resources),
                     StandardCharsets.UTF_8);
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void visitResourceByFolder(String type, String fullName, File resourceDir, List<JsonElement> resources) {
+        try {
+            int pageNum = 1;
+            int pageSize = 100;
+            while (true) {
+                List<JsonElement> data = getResource(type, fullName, pageNum, pageSize);
+                if (data == null) {
+                    break;
+                }
+                resources.addAll(data);
+                List<ResourceComponent> resourceComponents = GsonUtils.fromJsonString(GsonUtils.toJsonString(data),
+                        new com.google.common.reflect.TypeToken<List<ResourceComponent>>() {}.getType());
+                for (ResourceComponent component : resourceComponents) {
+                    if (component.isDirctory() || component.isDirectory()) {
+                        String currentDir = resourceDir.getAbsolutePath();
+                        //mkdir
+                        if (component.getFileName() != null) {
+                            currentDir = currentDir + File.separator + component.getFileName();
+                        }
+                        File visitDir = new File(currentDir);
+                        visitResourceByFolder(type, component.getFullName(), visitDir, resources);
+                    } else {
+                        if (!BooleanUtils.isTrue(skipResources)) {
+                            if (!resourceDir.exists()) {
+                                resourceDir.mkdirs();
+                            }
+                            downloadResource(component, resourceDir.getAbsolutePath());
+                        }
+                    }
+                }
+
+                if (data.size() < pageSize) {
+                    break;
+                }
+                pageNum = pageNum + 1;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<JsonElement> getResource(String type, String fullName, int pageNum, int pageSize) throws Exception {
+        QueryResourceListRequest queryResourceListRequest = new QueryResourceListRequest();
+        queryResourceListRequest.setType(type);
+        queryResourceListRequest.setFullName(fullName);
+        List<JsonElement> response = dolphinSchedulerApiService.queryResourceListByPage(
+                queryResourceListRequest, pageNum, pageSize);
+        return response;
+    }
+
+    private void downloadResource(ResourceComponent resource, String currentDir) {
+        //download file
+        DownloadResourceRequest downloadResourceRequest = new DownloadResourceRequest();
+        downloadResourceRequest.setId(resource.getId());
+        downloadResourceRequest.setFullName(resource.getFullName());
+        downloadResourceRequest.setDir(currentDir);
+        try {
+            dolphinSchedulerApiService.downloadResource(downloadResourceRequest);
+        } catch (Exception e) {
+            LOGGER.error("download resource error: {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -335,6 +392,37 @@ public class DolphinSchedulerReader {
             try {
                 List<JsonObject> processDefinitions = queryProcessDefinitionByPage(p, project);
                 List<String> idList = ListUtils.emptyIfNull(processDefinitions).stream()
+                        //todo add filter
+                        //.filter(process -> {
+                        //    if (process.has("releaseState")) {
+                        //        String state = process.get("releaseState").getAsString();
+                        //        if ("ONLINE".equals(state)) {
+                        //            return true;
+                        //        }
+                        //    } else {
+                        //        log.warn("has no releaseState \n {}", process);
+                        //    }
+                        //    return false;
+                        //})
+                        //.filter(process -> {
+                        //    if (process.has("scheduleReleaseState")) {
+                        //
+                        //        JsonElement element = process.get("scheduleReleaseState");
+                        //        if (element.isJsonNull()) {
+                        //            return false;
+                        //        } else {
+                        //            String state = element.getAsString();
+                        //            if ("ONLINE".equals(state)) {
+                        //                return true;
+                        //            } else {
+                        //                return false;
+                        //            }
+                        //        }
+                        //    } else {
+                        //        log.warn("can not get schedule \n {}", process);
+                        //    }
+                        //    return true;
+                        //})
                         .map(js -> {
                             if (isVersion1()) {
                                 return js.getAsJsonObject().get("id").getAsString();
@@ -442,7 +530,7 @@ public class DolphinSchedulerReader {
         Long code = projectNameToCodeMap.get(projectName);
         if (isVersion2() || isVersion3()) {
             if (code == null) {
-                new RuntimeException("project code not found by name: " + projectName);
+                throw new RuntimeException("project code not found by name: " + projectName);
             }
         }
         return code;

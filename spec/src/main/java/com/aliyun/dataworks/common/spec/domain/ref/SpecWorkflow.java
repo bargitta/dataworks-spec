@@ -57,11 +57,19 @@ public class SpecWorkflow extends SpecRefEntity implements Container, InputOutpu
     @EqualsAndHashCode.Include
     private List<SpecFlowDepend> dependencies;
 
+    @EqualsAndHashCode.Include
+    private String type;
+
     private String name;
 
     private String owner;
 
     private String description;
+
+    /**
+     * 是否可被引用
+     */
+    private Boolean citable;
 
     @Override
     public List<SpecNode> getInnerNodes() {

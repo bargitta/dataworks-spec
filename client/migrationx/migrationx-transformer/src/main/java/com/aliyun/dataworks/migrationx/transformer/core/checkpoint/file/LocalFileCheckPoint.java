@@ -63,9 +63,11 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
     public List<DwWorkflow> doWithCheckpoint(Function<BufferedFileWriter, List<DwWorkflow>> checkpointFunc, String projectName) {
         File checkpoint = TransformerContext.getContext().getCheckpoint();
         if (checkpoint == null) {
+            log.info("checkpoint is null, skip");
             return checkpointFunc.apply(null);
         }
         File target = new File(checkpoint.getAbsolutePath() + File.separator + projectName + SUFFIX);
+        log.info("do with checkpoint {}", target.getAbsolutePath());
         return doWithCheckpoint(checkpointFunc, target);
     }
 

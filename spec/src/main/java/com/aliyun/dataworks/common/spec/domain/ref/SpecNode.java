@@ -67,6 +67,11 @@ public class SpecNode extends SpecRefEntity implements Container, InputOutputWir
      */
     private Boolean ignoreBranchConditionSkip;
 
+    /**
+     * 是否自动解析
+     */
+    private Boolean autoParse;
+
     @EqualsAndHashCode.Include
     private SpecDatasource datasource;
 

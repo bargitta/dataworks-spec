@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,8 +35,9 @@ import com.aliyun.dataworks.migrationx.transformer.flowspec.transformer.Abstract
 import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
 import com.aliyun.migrationx.common.utils.JSONUtils;
+import com.aliyun.migrationx.common.utils.JsonFileUtils;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -53,9 +56,9 @@ public class FlowSpecDolphinSchedulerV3Transformer extends AbstractTransformer {
 
     private FlowSpecConverterContext context;
 
-    private List<Specification<DataWorksWorkflowSpec>> specificationList = new ArrayList<>();
+    private final List<Specification<DataWorksWorkflowSpec>> specificationList = new ArrayList<>();
 
-    private List<DagDataSchedule> dagDataScheduleList = new ArrayList<>();
+    private final List<DagDataSchedule> dagDataScheduleList = new ArrayList<>();
 
     static {
         SUPPORT_KIND_SET.add(SpecKind.MANUAL_WORKFLOW.getLabel());
@@ -81,20 +84,14 @@ public class FlowSpecDolphinSchedulerV3Transformer extends AbstractTransformer {
     }
 
     private void read() {
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
             context = parseContext();
-            String sourceFileContent = FileUtils.readFileToString(new File(sourcePath), StandardCharsets.UTF_8);
-            JsonNode jsonNode = objectMapper.readTree(sourceFileContent);
-            if (jsonNode.isArray()) {
-                log.info("source file is array");
-                for (JsonNode node : jsonNode) {
-                    specificationList.add(SpecUtil.parseToDomain(objectMapper.writeValueAsString(node)));
-                }
-            } else {
-                specificationList.add(SpecUtil.parseToDomain(objectMapper.writeValueAsString(jsonNode)));
+            JsonParser jsonParser = JsonFileUtils.buildJsonParser(Files.newInputStream(Paths.get(sourcePath)));
+            JsonNode jsonNode;
+            while ((jsonNode = JSONUtils.readObjFromParser(jsonParser)) != null) {
+                String flowSpec = JSONUtils.toJsonString(jsonNode);
+                specificationList.add(SpecUtil.parseToDomain(flowSpec));
             }
-
         } catch (IOException e) {
             log.error("read config or source file error", e);
             throw new RuntimeException(e);

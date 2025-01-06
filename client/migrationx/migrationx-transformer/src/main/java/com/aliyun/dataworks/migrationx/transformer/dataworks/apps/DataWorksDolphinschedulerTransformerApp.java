@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
  */
 @Slf4j
 public class DataWorksDolphinschedulerTransformerApp extends BaseTransformerApp {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DataWorksDolphinschedulerTransformerApp.class);
 
     public DataWorksDolphinschedulerTransformerApp() {
         super(DolphinSchedulerPackage.class, DataWorksPackage.class);

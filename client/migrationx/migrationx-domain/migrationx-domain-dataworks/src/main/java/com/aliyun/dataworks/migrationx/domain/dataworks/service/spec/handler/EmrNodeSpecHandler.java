@@ -26,8 +26,7 @@ import com.aliyun.dataworks.common.spec.domain.dw.codemodel.EmrLauncher;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CalcEngineType;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
-import com.aliyun.dataworks.common.spec.domain.ref.runtime.emr.EmrJobExecuteMode;
-import com.aliyun.dataworks.common.spec.domain.ref.runtime.emr.EmrJobSubmitMode;
+import com.aliyun.dataworks.common.spec.utils.ReflectUtils;
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.entity.DwNodeEntity;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
@@ -54,21 +53,33 @@ public class EmrNodeSpecHandler extends BasicNodeSpecHandler {
 
         CodeModel<EmrCode> code = CodeModelFactory.getCodeModel(scr.getType(), scr.getCode());
         Map<String, Object> emrJobConfig = Maps.newHashMap();
+        Map<String, Object> sparkConf = Maps.newHashMap();
         Optional.ofNullable(code.getCodeModel()).flatMap(emrCode -> Optional.ofNullable(emrCode.getLauncher()).map(EmrLauncher::getAllocationSpec))
             .ifPresent(allocSpecMap -> {
                 EmrAllocationSpec allocSpec = EmrAllocationSpec.of(allocSpecMap);
-                emrJobConfig.put("session_enabled", allocSpec.getReuseSession());
                 emrJobConfig.put("priority", allocSpec.getPriority());
                 emrJobConfig.put("cores", allocSpec.getVcores());
                 emrJobConfig.put("memory", allocSpec.getMemory());
                 emrJobConfig.put("queue", allocSpec.getQueue());
-                emrJobConfig.put("submit_mode", Optional.ofNullable(allocSpec.getUseGateway())
-                    .map(useGateway -> useGateway ? EmrJobSubmitMode.LOCAL : EmrJobSubmitMode.YARN));
                 emrJobConfig.put("submitter", allocSpec.getUserName());
-                emrJobConfig.put("execute_mode", Optional.ofNullable(allocSpec.getBatchMode())
-                    .map(batchMode -> batchMode ? EmrJobExecuteMode.BATCH : EmrJobExecuteMode.SINGLE));
+
+                Optional.ofNullable(allocSpec.getDataworksSessionDisable()).ifPresent(
+                    disable -> emrJobConfig.put(EmrAllocationSpec.UPPER_KEY_DATAWORKS_SESSION_DISABLE, disable));
+                Optional.ofNullable(allocSpec.getEnableJdbcSql()).ifPresent(
+                    enable -> emrJobConfig.put(EmrAllocationSpec.UPPER_KEY_ENABLE_SPARKSQL_JDBC, enable));
+                Optional.ofNullable(allocSpec.getReuseSession()).ifPresent(
+                    reuse -> emrJobConfig.put(EmrAllocationSpec.UPPER_KEY_REUSE_SESSION, reuse));
+                Optional.ofNullable(allocSpec.getUseGateway()).ifPresent(useGateway ->
+                    emrJobConfig.put(EmrAllocationSpec.UPPER_KEY_USE_GATEWAY, useGateway));
+                Optional.ofNullable(allocSpec.getBatchMode()).ifPresent(batchMode ->
+                    emrJobConfig.put(EmrAllocationSpec.UPPER_KEY_FLOW_SKIP_SQL_ANALYZE, batchMode));
+                allocSpecMap.entrySet().stream()
+                    .filter(ent -> ReflectUtils.getPropertyFields(allocSpec).stream().noneMatch(f -> f.getName().equals(ent.getKey())))
+                    .filter(ent -> !EmrAllocationSpec.UPPER_KEYS.contains(ent.getKey()))
+                    .forEach(ent -> sparkConf.put(ent.getKey(), ent.getValue()));
             });
         emrRuntime.setEmrJobConfig(emrJobConfig);
+        emrRuntime.setSparkConf(sparkConf);
         return emrRuntime;
     }
 

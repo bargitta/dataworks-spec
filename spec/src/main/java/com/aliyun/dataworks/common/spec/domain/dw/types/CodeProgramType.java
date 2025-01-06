@@ -33,6 +33,7 @@ public enum CodeProgramType {
     SHELL(2, "SHELL", CalcEngineType.GENERAL, null, ".sh"),
     DIDE_SHELL(6, "DIDE_SHELL", CalcEngineType.GENERAL, null, ".sh"),
     PERL(31, "PERL", CalcEngineType.GENERAL, null, ".pl"),
+    SUB_PROCESS(1122, "SUB_PROCESS",CalcEngineType.GENERAL ,null ,null ),
     VIRTUAL_WORKFLOW(97, "VIRTUAL_WORKFLOW", CalcEngineType.GENERAL, null, null),
     COMBINED_NODE(98, "COMBINED_NODE", CalcEngineType.GENERAL, null, null),
     VIRTUAL(99, "VIRTUAL", CalcEngineType.GENERAL, null, ".vi"),
@@ -105,8 +106,8 @@ public enum CodeProgramType {
     EMR_STREAMING_SQL(266, "EMR_STREAMING_SQL", CalcEngineType.EMR, LabelType.DATA_PROCESS, ".sql"),
     EMR_TRINO(267, "EMR_TRINO", CalcEngineType.EMR, LabelType.DATA_PROCESS, ".sql"),
     EMR_KYUUBI(268, "EMR_KYUUBI", CalcEngineType.EMR, LabelType.DATA_PROCESS, ".sql"),
-    EMR_JAR(231, "EMR_JAR", CalcEngineType.EMR, LabelType.RESOURCE, null),
-    EMR_FILE(232, "EMR_FILE", CalcEngineType.EMR, LabelType.RESOURCE, null),
+    EMR_JAR(231, "EMR_JAR", CalcEngineType.EMR, LabelType.RESOURCE, ".json"),
+    EMR_FILE(232, "EMR_FILE", CalcEngineType.EMR, LabelType.RESOURCE, ".json"),
     EMR_TABLE(261, "EMR_TABLE", CalcEngineType.EMR, LabelType.TABLE, null),
     EMR_FUNCTION(262, "EMR_FUNCTION", CalcEngineType.EMR, LabelType.FUNCTION, null),
 
@@ -119,8 +120,8 @@ public enum CodeProgramType {
     CDH_PRESTO(278, "CDH_PRESTO", CalcEngineType.HADOOP_CDH, LabelType.DATA_PROCESS, ".sql"),
     CDH_IMPALA(279, "CDH_IMPALA", CalcEngineType.HADOOP_CDH, LabelType.DATA_PROCESS, ".sql"),
 
-    CDH_JAR(274, "CDH_JAR", CalcEngineType.HADOOP_CDH, LabelType.RESOURCE, null),
-    CDH_FILE(275, "CDH_FILE", CalcEngineType.HADOOP_CDH, LabelType.RESOURCE, null),
+    CDH_JAR(274, "CDH_JAR", CalcEngineType.HADOOP_CDH, LabelType.RESOURCE, ".json"),
+    CDH_FILE(275, "CDH_FILE", CalcEngineType.HADOOP_CDH, LabelType.RESOURCE, ".json"),
     CDH_TABLE(280, "CDH_TABLE", CalcEngineType.HADOOP_CDH, LabelType.TABLE, null),
     CDH_FUNCTION(281, "CDH_FUNCTION", CalcEngineType.HADOOP_CDH, LabelType.FUNCTION, null),
 
@@ -161,11 +162,12 @@ public enum CodeProgramType {
     DB2(1315, "DB2", CalcEngineType.DATABASE, LabelType.DATA_PROCESS, ".sql"),
     ADB_for_PostgreSQL(1316, "ADB for PostgreSQL", CalcEngineType.DATABASE, LabelType.DATA_PROCESS, ".sql"),
     ADB_for_MySQL(1317, "ADB for MySQL", CalcEngineType.DATABASE, LabelType.DATA_PROCESS, ".sql"),
-    
-    //only for temp
-    CUSTOM(9999, "CUSTOM", CalcEngineType.CUSTOM, LabelType.DATA_PROCESS, ".json"),
+    ADB_SPARK(1990, "ADB Spark", CalcEngineType.ADB_SPARK, LabelType.DATA_PROCESS, ".adb.spark.json"),
+    ADB_SPARK_SQL(1991, "ADB Spark SQL", CalcEngineType.ADB_SPARK, LabelType.DATA_PROCESS, ".adb.spark.sql"),
 
-    ;
+    //only for temp
+    CUSTOM(9999, "CUSTOM", CalcEngineType.CUSTOM, LabelType.DATA_PROCESS, ".json");
+
 
     private final int code;
     private final String name;
@@ -211,7 +213,7 @@ public enum CodeProgramType {
 
     public static boolean matchEngine(String codeProgramType, CalcEngineType calcEngineType) {
         return Arrays.stream(CodeProgramType.values())
-                .filter(t -> StringUtils.equalsIgnoreCase(t.name(), codeProgramType))
-                .anyMatch(t -> Objects.equals(calcEngineType, t.getCalcEngineType()));
+            .filter(t -> StringUtils.equalsIgnoreCase(t.name(), codeProgramType))
+            .anyMatch(t -> Objects.equals(calcEngineType, t.getCalcEngineType()));
     }
 }

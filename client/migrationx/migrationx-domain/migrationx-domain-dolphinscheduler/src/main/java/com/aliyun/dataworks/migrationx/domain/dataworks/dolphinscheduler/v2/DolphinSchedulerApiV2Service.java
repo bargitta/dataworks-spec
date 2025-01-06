@@ -42,6 +42,8 @@ import com.aliyun.migrationx.common.http.HttpClientUtil;
 import com.aliyun.migrationx.common.utils.GsonUtils;
 
 import com.google.common.base.Joiner;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
@@ -161,6 +163,22 @@ public class DolphinSchedulerApiV2Service implements DolphinSchedulerApi {
         HttpGet httpGet = newHttpGet(url);
         String responseStr = client.executeAndGet(httpGet);
         return GsonUtils.fromJsonString(responseStr, new com.google.common.reflect.TypeToken<Response<List<JsonObject>>>() {}.getType());
+    }
+
+    @Override
+    public List<JsonElement> queryResourceListByPage(QueryResourceListRequest request, int pageNum, int pageSize)
+            throws Exception {
+        HttpClientUtil client = new HttpClientUtil();
+        String url = String.format("resources/list?type=%s",
+                request.getType());
+        HttpGet httpGet = newHttpGet(url);
+        String responseStr = client.executeAndGet(httpGet);
+        Response<JsonArray> response = GsonUtils.fromJsonString(responseStr, new com.google.common.reflect.TypeToken<Response<JsonArray>>() {}.getType());
+        if (response.getCode() > 0) {
+            log.error("response error {}", responseStr);
+            return null;
+        }
+        return response.getData().asList();
     }
 
     @Override

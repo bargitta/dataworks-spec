@@ -18,8 +18,9 @@ package com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.client;
 import java.util.Date;
 import java.util.List;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSONObject;
 
+import com.aliyun.dataworks.common.spec.domain.dw.nodemodel.DataWorksNodeAdapter;
 import com.aliyun.migrationx.common.utils.GsonUtils;
 import lombok.Data;
 import lombok.ToString;
@@ -52,6 +53,7 @@ public class FileNodeCfg {
     List<FileNodeInputOutputContext> inputContextList;
     List<FileNodeInputOutput> inputList;
     Integer isAutoParse;
+    Integer nodeType;
     Integer isStop;
     Date lastModifyTime;
     String lastModifyUser;
@@ -66,11 +68,14 @@ public class FileNodeCfg {
     Integer priority;
     Integer reRunAble;
     Long resgroupId;
+    String resourceGroupIdentifier;
     Date startEffectDate;
     Boolean startRightNow;
     Integer taskRerunInterval;
     Integer taskRerunTime;
     String extConfig;
+
+    private Integer streamLaunchMode;
 
     public void setOutputByOutputList() {
         if (StringUtils.isBlank(output) && !CollectionUtils.isEmpty(outputList)) {
@@ -83,4 +88,22 @@ public class FileNodeCfg {
             this.input = GsonUtils.toJsonString(inputList);
         }
     }
+
+    public Integer getStreamLaunchMode() {
+        if (streamLaunchMode != null) {
+            return streamLaunchMode;
+        }
+        if (StringUtils.isNotBlank(this.extConfig)) {
+            try {
+                JSONObject jsonObject = JSONObject.parseObject(this.extConfig);
+                if (jsonObject.containsKey(DataWorksNodeAdapter.STREAM_LAUNCH_MODE)) {
+                    return jsonObject.getInteger(DataWorksNodeAdapter.STREAM_LAUNCH_MODE);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("parse extConfig from NodeDef failed! ", e);
+            }
+        }
+        return null;
+    }
+
 }

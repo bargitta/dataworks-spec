@@ -13,10 +13,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
 
+@Slf4j
 public class JsonFileUtils {
     public static List<JsonNode> readJsonLines(final File file) throws IOException {
         try (InputStream in = openInputStream(file)) {
@@ -74,6 +78,15 @@ public class JsonFileUtils {
     }
 
     public static BufferedReader toBufferedReader(final Reader reader) {
-        return reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader);
+        return reader instanceof BufferedReader ? (BufferedReader)reader : new BufferedReader(reader);
+    }
+
+    public static JsonParser buildJsonParser(InputStream inputStream) {
+        try {
+            return new JsonFactory().createParser(inputStream);
+        } catch (IOException e) {
+            log.error("create json parser error: {}", e.getLocalizedMessage(), e);
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -107,4 +107,11 @@ public interface DataWorksNode {
      * @see CodeProgramType#getCode()
      */
     Integer getPrgType(Function<String, Integer> getCodeByTypeName);
+
+    /**
+     * get advance settings for node
+     *
+     * @return String of advance settings json
+     */
+    String getAdvanceSettings();
 }
