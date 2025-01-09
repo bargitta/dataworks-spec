@@ -33,6 +33,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.client.Fi
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.client.FileNodeInputOutput;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.IoParseType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.RerunMode;
+import com.aliyun.migrationx.common.utils.BeanUtils;
 import com.aliyun.migrationx.common.utils.GsonUtils;
 
 import com.google.common.base.Joiner;
@@ -44,7 +45,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 
 /**
  * @author sam.liux

@@ -19,19 +19,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwWorkflow;
 import com.aliyun.dataworks.migrationx.transformer.core.checkpoint.CheckPoint;
 
-public class InMemoryCheckPoint implements CheckPoint<CacheWriter> {
-    public List<DwWorkflow> doWithCheckpoint(Function<CacheWriter, List<DwWorkflow>> func, String projectName) {
+public class InMemoryCheckPoint<SPEC> implements CheckPoint<CacheWriter, SPEC> {
+    public List<SPEC> doWithCheckpoint(Function<CacheWriter, List<SPEC>> func, String projectName) {
         return null;
     }
 
-    public void doCheckpoint(CacheWriter writer, List<DwWorkflow> workflows, String processName, String taskName) {
+    public void doCheckpoint(CacheWriter writer, List<SPEC> workflows, String processName, String taskName) {
 
     }
 
-    public Map<String, List<DwWorkflow>> loadFromCheckPoint(String projectName, String processName) {
+    public Map<String, List<SPEC>> loadFromCheckPoint(String projectName, String processName) {
         return null;
     }
 }

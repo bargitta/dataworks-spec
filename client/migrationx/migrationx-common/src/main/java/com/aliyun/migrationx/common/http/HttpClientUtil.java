@@ -29,10 +29,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.net.SocketException;
 
 /**
  * @author 聿剑
@@ -66,7 +62,7 @@ public class HttpClientUtil {
     }
 
     public String executeAndGet(HttpRequestBase httpRequestBase) throws Exception {
-        return executeAndGet(httpRequestBase, 3, 1000);
+        return executeAndGet(httpRequestBase, 1, 1000);
     }
 
     public String executeAndGet(HttpRequestBase httpRequestBase, boolean retry) throws Exception {

@@ -1,0 +1,79 @@
+[
+  {
+    "id": 8,
+    "userId": 1,
+    "userName": "admin",
+    "name": "feilun_test1",
+    "note": "",
+    "type": "MYSQL",
+    "connectionParams": "{\"user\":\"admin\",\"password\":\"******\",\"address\":\"jdbc:mysql://123:3306\",\"database\":\"dw\",\"jdbcUrl\":\"jdbc:mysql://123:3306/dw\",\"driverClassName\":\"com.mysql.cj.jdbc.Driver\",\"validationQuery\":\"select 1\"}",
+    "createTime": "2024-07-05 16:53:57",
+    "updateTime": "2024-07-08 15:50:27"
+  },
+  {
+    "id": 7,
+    "userId": 1,
+    "userName": "admin",
+    "name": "mysql_workshop_log",
+    "note": "",
+    "type": "MYSQL",
+    "connectionParams": "{\"user\":\"workshop\",\"password\":\"******\",\"address\":\"jdbc:mysql://101.37.201.51:3306\",\"database\":\"workshop\",\"jdbcUrl\":\"jdbc:mysql://101.37.201.51:3306/workshop\",\"driverClassName\":\"com.mysql.cj.jdbc.Driver\",\"validationQuery\":\"select 1\"}",
+    "createTime": "2024-07-08 15:32:19",
+    "updateTime": "2024-07-08 15:32:19"
+  },
+  {
+    "id": 6,
+    "userId": 1,
+    "userName": "admin",
+    "name": "pg",
+    "note": "",
+    "type": "POSTGRESQL",
+    "connectionParams": "{\"user\":\"admin\",\"password\":\"******\",\"address\":\"jdbc:postgresql://pg:5432\",\"database\":\"dw\",\"jdbcUrl\":\"jdbc:postgresql://pg:5432/dw\",\"driverClassName\":\"org.postgresql.Driver\",\"validationQuery\":\"select version()\"}",
+    "createTime": "2024-07-05 16:58:50",
+    "updateTime": "2024-07-05 16:58:50"
+  },
+  {
+    "id": 4,
+    "userId": 1,
+    "userName": "admin",
+    "name": "sqlserver",
+    "note": "",
+    "type": "SQLSERVER",
+    "connectionParams": "{\"user\":\"admin\",\"password\":\"******\",\"address\":\"jdbc:sqlserver://test:1433\",\"database\":\"dw\",\"jdbcUrl\":\"jdbc:sqlserver://test:1433;databaseName\u003ddw\",\"driverClassName\":\"com.microsoft.sqlserver.jdbc.SQLServerDriver\",\"validationQuery\":\"select 1\"}",
+    "createTime": "2024-07-05 16:50:53",
+    "updateTime": "2024-07-05 16:50:53"
+  },
+  {
+    "id": 3,
+    "userId": 1,
+    "userName": "admin",
+    "name": "test1",
+    "note": "",
+    "type": "CLICKHOUSE",
+    "connectionParams": "{\"user\":\"feilun\",\"password\":\"******\",\"address\":\"jdbc:clickhouse://pgm-2ze5n0y3qv3v3wr4fo.pg.rds.aliyuncs.com:5432\",\"database\":\"test1\",\"jdbcUrl\":\"jdbc:clickhouse://pgm-2ze5n0y3qv3v3wr4fo.pg.rds.aliyuncs.com:5432/test1\",\"driverClassName\":\"com.clickhouse.jdbc.ClickHouseDriver\",\"validationQuery\":\"select 1\"}",
+    "createTime": "2024-07-05 15:01:57",
+    "updateTime": "2024-07-05 15:01:57"
+  },
+  {
+    "id": 2,
+    "userId": 1,
+    "userName": "admin",
+    "name": "spark1",
+    "note": "",
+    "type": "SPARK",
+    "connectionParams": "{\"user\":\"root\",\"password\":\"******\",\"address\":\"jdbc:hive2://172.16.3.197:10001\",\"database\":\"default\",\"jdbcUrl\":\"jdbc:hive2://172.16.3.197:10001/default\",\"driverClassName\":\"org.apache.hive.jdbc.HiveDriver\",\"validationQuery\":\"select 1\"}",
+    "createTime": "2024-06-25 15:38:30",
+    "updateTime": "2024-06-25 15:38:30"
+  },
+  {
+    "id": 1,
+    "userId": 1,
+    "userName": "admin",
+    "name": "hive1",
+    "note": "",
+    "type": "HIVE",
+    "connectionParams": "{\"user\":\"root\",\"password\":\"******\",\"address\":\"jdbc:hive2://172.16.3.197:10000\",\"database\":\"default\",\"jdbcUrl\":\"jdbc:hive2://172.16.3.197:10000/default\",\"driverClassName\":\"org.apache.hive.jdbc.HiveDriver\",\"validationQuery\":\"select 1\"}",
+    "createTime": "2024-06-14 18:59:59",
+    "updateTime": "2024-06-14 18:59:59"
+  }
+]

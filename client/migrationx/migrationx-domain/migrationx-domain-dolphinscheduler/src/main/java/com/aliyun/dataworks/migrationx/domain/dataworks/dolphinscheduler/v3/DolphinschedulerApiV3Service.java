@@ -121,8 +121,8 @@ public class DolphinschedulerApiV3Service implements DolphinSchedulerApi {
     public List<JsonElement> queryResourceListByPage(QueryResourceListRequest request, int pageNum, int pageSize)
             throws Exception {
         HttpClientUtil client = new HttpClientUtil();
-        String url = String.format("resources?type=%s&fullName=%s&tenantCode=&searchVal=&pageNo=%s&pageSize=%s&id=-1",
-                request.getType(), request.getFullName() == null ? "" : request.getFullName(), pageNum, pageSize);
+        String url = String.format("resources?type=%s&fullName=%s&tenantCode=&searchVal=&pageNo=%s&pageSize=%s&id=%s",
+                request.getType(), request.getFullName() == null ? "" : request.getFullName(), pageNum, pageSize, request.getDirId());
         HttpGet httpGet = newHttpGet(url);
         String responseStr = client.executeAndGet(httpGet);
         Response<JsonObject> response = GsonUtils.fromJsonString(responseStr, new TypeToken<Response<JsonObject>>() {}.getType());

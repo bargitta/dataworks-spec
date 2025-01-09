@@ -26,4 +26,18 @@ public class DataWorksDolphinschedulerTransformerAppTest {
         };
         transformerApp.run(args);
     }
+
+    @Test
+    public void test2() {
+        BaseTransformerApp transformerApp = new DataWorksDolphinschedulerTransformerApp();
+        String[] args = new String[]{
+                "-c", "../../../temp/conf/transformer2.json",
+                //"-s", "../../temp/13666515015680/.tmp",
+                //"-s", "../../../temp/shell2",
+                "-s", "../../../temp/test1111",
+                //"-s", "../../temp/datax",
+                "-t", "../../../temp/specs4"
+        };
+        transformerApp.run(args);
+    }
 }

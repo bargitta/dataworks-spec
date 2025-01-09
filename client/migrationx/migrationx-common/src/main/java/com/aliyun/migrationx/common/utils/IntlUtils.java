@@ -15,9 +15,9 @@
 
 package com.aliyun.migrationx.common.utils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
@@ -33,9 +33,8 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 /**
  * @author 聿剑
@@ -44,7 +43,7 @@ import org.springframework.core.io.Resource;
 public class IntlUtils {
 
     public static Map<String, Map<String, String>> intlResource = new HashMap<>();
-    private static final String CLASS_PATH_RESOURCE = "i18n";
+    public static final String CLASS_PATH_RESOURCE = "i18n";
 
     public static IntlBo get(String key) {
         IntlBo intlBo = new IntlBo();
@@ -85,24 +84,34 @@ public class IntlUtils {
         }
     }
 
-    private static String readFileToStr(String fileName) {
-        Resource resource = new ClassPathResource(CLASS_PATH_RESOURCE + "/" + fileName);
-        try {
-            BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream()));
-            StringBuilder buffer = new StringBuilder();
-            String line;
-
-            while((line = br.readLine()) != null) {
-                buffer.append(line);
+    public static String readFileToStr(String file) throws IOException {
+        String path = CLASS_PATH_RESOURCE + "/" + file;
+        try (InputStream inputStream = IntlUtils.class.getClassLoader().getResourceAsStream(path)) {
+            if (inputStream != null) {
+                return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            } else {
+                return null;
             }
-
-            resource.getInputStream().close();
-            return buffer.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "";
         }
     }
+    //private static String readFileToStr(String fileName) {
+    //    Resource resource = new ClassPathResource(CLASS_PATH_RESOURCE + "/" + fileName);
+    //    try {
+    //        BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+    //        StringBuilder buffer = new StringBuilder();
+    //        String line;
+    //
+    //        while((line = br.readLine()) != null) {
+    //            buffer.append(line);
+    //        }
+    //
+    //        resource.getInputStream().close();
+    //        return buffer.toString();
+    //    } catch (IOException e) {
+    //        e.printStackTrace();
+    //        return "";
+    //    }
+    //}
 
     public static class IntlBo {
         private String value;

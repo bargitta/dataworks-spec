@@ -46,6 +46,26 @@ public class DolphinSchedulerV2Context {
 
     private Map<Long, List<String>> subProcessCodeOutMap = new HashMap<>();
 
+    /**
+     * processId：SpecNode
+     */
+    private Map<Long, Object> subProcessCodeNodeMap = new HashMap<>();
+    private Map<Long, Object> subProcessCodeWorkflowMap = new HashMap<>();
+
+    /**
+     * taskDefinition.code : SpecNodeOutput.data
+     */
+    private Map<Long, String> taskCodeNodeDataMap = new HashMap<>();
+    private Map<Long, String> taskCodeNodeIdMap = new HashMap<>();
+
+    public Map<Long, Object> getTaskCodeSpecNodeMap() {
+        return taskCodeSpecNodeMap;
+    }
+
+    private Map<Long, Object> taskCodeSpecNodeMap = new HashMap<>();
+
+    private Map<Object, List<Long>> specNodeProcessCodeMap = new HashMap<>();
+
     private DolphinSchedulerV2Context() {
 
     }
@@ -189,5 +209,29 @@ public class DolphinSchedulerV2Context {
 
     public List<String> getSubProcessCodeMap(Long code) {
         return this.subProcessCodeOutMap.get(code);
+    }
+
+    public Map<Long, String> getTaskCodeNodeDataMap() {
+        return taskCodeNodeDataMap;
+    }
+
+    public Map<Long, String> getTaskCodeNodeIdMap() {
+        return taskCodeNodeIdMap;
+    }
+
+    public Map<Long, Object> getSubProcessCodeNodeMap() {
+        return subProcessCodeNodeMap;
+    }
+
+    public Map<Long, Object> getSubProcessCodeWorkflowMap() {
+        return subProcessCodeWorkflowMap;
+    }
+
+    public Map<Object, List<Long>> getSpecNodeProcessCodeMap() {
+        return specNodeProcessCodeMap;
+    }
+
+    public void setSpecNodeProcessCodeMap(Map<Object, List<Long>> specNodeProcessCodeMap) {
+        this.specNodeProcessCodeMap = specNodeProcessCodeMap;
     }
 }

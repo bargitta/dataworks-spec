@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.Project;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.ProcessMeta;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.TaskNode;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.UdfFunc;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.datasource.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.entity.ResourceInfo;
@@ -42,7 +43,36 @@ public class DolphinSchedulerV1Context {
     private List<ProcessMeta> dagDatas;
     private Map<Long, Project> projectCodeMap = new HashMap<>();
 
-    private Map<Long, List<String>> subProcessCodeOutMap = new HashMap<>();
+    private Map<Integer, List<String>> subProcessCodeOutMap = new HashMap<>();
+
+    public Map<Integer, List<Object>> getProcessCodeTaskRelationMap() {
+        return processCodeTaskRelationMap;
+    }
+
+    private Map<Integer, List<Object>> processCodeTaskRelationMap = new HashMap<>();
+
+    /**
+     * processId：SpecNode
+     */
+    private Map<Integer, Object> subProcessCodeNodeMap = new HashMap<>();
+    /**
+     * processId: workflow
+     */
+    private Map<Integer, Object> subProcessCodeWorkflowMap = new HashMap<>();
+
+    /**
+     * taskDefinition.code : SpecNodeOutput.data
+     */
+    private Map<String, String> taskCodeNodeDataMap = new HashMap<>();
+    private Map<String, String> taskCodeNodeIdMap = new HashMap<>();
+
+    public Map<String, Object> getTaskCodeSpecNodeMap() {
+        return taskCodeSpecNodeMap;
+    }
+
+    private Map<String, Object> taskCodeSpecNodeMap = new HashMap<>();
+
+    private Map<Object, List<String>> specNodeProcessCodeMap = new HashMap<>();
 
     private DolphinSchedulerV1Context() {
 
@@ -62,6 +92,17 @@ public class DolphinSchedulerV1Context {
                 context.projectCodeMap.put(Long.parseLong(project.getCode()), project);
             }
         }
+
+        for (ProcessMeta processMeta : dagDatas) {
+            List<TaskNode> taskNodes = processMeta.getProcessDefinitionJson().getTasks();
+            List<Object> taskDefinitionList = context.processCodeTaskRelationMap.get(processMeta.getProcessDefinitionId());
+            if (taskDefinitionList == null) {
+                taskDefinitionList = new ArrayList<>();
+                context.processCodeTaskRelationMap.put(processMeta.getProcessDefinitionId(), taskDefinitionList);
+            }
+            taskDefinitionList.addAll(taskNodes);
+        }
+
         DolphinSchedulerV1Context.context = context;
     }
 
@@ -109,7 +150,7 @@ public class DolphinSchedulerV1Context {
         this.udfFuncs = udfFuncs;
     }
 
-    public void putSubProcessCodeOutMap(Long code, String out) {
+    public void putSubProcessCodeOutMap(Integer code, String out) {
         List<String> outs = this.subProcessCodeOutMap.get(code);
         if (outs == null) {
             outs = new ArrayList<>();
@@ -120,5 +161,25 @@ public class DolphinSchedulerV1Context {
 
     public List<String> getSubProcessCodeMap(Long code) {
         return this.subProcessCodeOutMap.get(code);
+    }
+
+    public Map<String, String> getTaskCodeNodeDataMap() {
+        return taskCodeNodeDataMap;
+    }
+
+    public Map<String, String> getTaskCodeNodeIdMap() {
+        return taskCodeNodeIdMap;
+    }
+
+    public Map<Integer, Object> getSubProcessCodeNodeMap() {
+        return subProcessCodeNodeMap;
+    }
+
+    public Map<Integer, Object> getSubProcessCodeWorkflowMap() {
+        return subProcessCodeWorkflowMap;
+    }
+
+    public Map<Object, List<String>> getSpecNodeProcessCodeMap() {
+        return specNodeProcessCodeMap;
     }
 }

@@ -69,6 +69,7 @@ import com.aliyun.dataworks.migrationx.transformer.core.report.ReportItem;
 import com.aliyun.dataworks.migrationx.transformer.core.report.ReportItemType;
 import com.aliyun.dataworks.migrationx.transformer.core.report.ReportRiskLevel;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.AbstractBaseConverter;
+import com.aliyun.migrationx.common.utils.BeanUtils;
 import com.aliyun.migrationx.common.utils.GsonUtils;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -84,7 +85,6 @@ import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 
 /**
  * @author sam.liux
@@ -364,7 +364,7 @@ public class IdeExportProjectConverter extends AbstractBaseConverter {
                 .filter(io -> Integer.valueOf(0).equals(io.getType()))
                 .map(io -> {
                     NodeContext ctx = new NodeContext();
-                    BeanUtils.copyProperties(io, ctx);
+                    com.aliyun.migrationx.common.utils.BeanUtils.copyProperties(io, ctx);
                     return ctx;
                 }).collect(Collectors.toList()));
         node.setOutputContexts(CollectionUtils.emptyIfNull(ideFile.getNodeInputOutputContexts()).stream()

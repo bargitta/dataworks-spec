@@ -32,4 +32,5 @@ public class QueryResourceListRequest extends DolphinSchedulerRequest {
     private String type;
     private String fullName;
     private String tenantCode;
+    private int dirId;
 }

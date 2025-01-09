@@ -204,10 +204,11 @@ public class OdpsSparkCode extends AbstractBaseCode {
                             .collect(Collectors.toList())
             );
             code.append(refs);
+            code.append("\n");
         }
 
         if (sparkJson != null) {
-            code.append("\n").append(GsonUtils.defaultGson.toJson(sparkJson));
+            code.append(GsonUtils.defaultGson.toJson(sparkJson));
         }
         return code.toString();
     }
@@ -222,10 +223,11 @@ public class OdpsSparkCode extends AbstractBaseCode {
                             .collect(Collectors.toList())
             );
             code.append(refs);
+            code.append("\n");
         }
 
         if (sparkJson != null) {
-            code.append("\n" + GsonUtils.defaultGson.toJson(sparkJson));
+            code.append(GsonUtils.defaultGson.toJson(sparkJson));
         }
         return code.toString();
     }

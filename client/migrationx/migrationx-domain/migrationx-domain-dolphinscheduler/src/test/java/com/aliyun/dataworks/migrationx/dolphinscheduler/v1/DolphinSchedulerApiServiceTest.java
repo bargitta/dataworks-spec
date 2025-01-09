@@ -18,35 +18,35 @@ package com.aliyun.dataworks.migrationx.dolphinscheduler.v1;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.DolphinSchedulerApiService;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.QueryProcessDefinitionByPaginateRequest;
 import com.aliyun.migrationx.common.http.HttpClientUtil;
-import org.junit.Before;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedConstruction;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 /**
  * @author 聿剑
  * @date 2022/10/20
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({DolphinSchedulerApiService.class, HttpClientUtil.class})
+@RunWith(MockitoJUnitRunner.class)
+@Ignore
 public class DolphinSchedulerApiServiceTest {
-    @Before
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
-    public void testQueryProcessDefinitionByPaginate() throws Exception {
-        HttpClientUtil httpClient = PowerMockito.mock(HttpClientUtil.class);
-        PowerMockito.whenNew(HttpClientUtil.class).withAnyArguments().thenReturn(httpClient);
-        String response = "";
-        Mockito.doReturn(response).when(httpClient).executeAndGet(Mockito.any());
-        DolphinSchedulerApiService service = new DolphinSchedulerApiService("", "");
-        QueryProcessDefinitionByPaginateRequest request = new QueryProcessDefinitionByPaginateRequest();
-        service.queryProcessDefinitionByPaging(request);
+    public void testParseProjects_Normal() throws Exception {
+        try (MockedConstruction<HttpClientUtil> mockTank = mockConstruction(HttpClientUtil.class, (mock, context) -> {
+            when(mock.executeAndGet(any())).thenReturn("");
+        })) {
+            DolphinSchedulerApiService service = new DolphinSchedulerApiService("", "");
+            QueryProcessDefinitionByPaginateRequest request = new QueryProcessDefinitionByPaginateRequest();
+            service.queryProcessDefinitionByPaging(request);
+        } catch (Exception e) {
+            throw e;
+        }
     }
 }

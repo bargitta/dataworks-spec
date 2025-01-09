@@ -17,15 +17,14 @@ package com.aliyun.dataworks.common.spec.writer.impl;
 
 import java.util.List;
 
-import com.aliyun.dataworks.common.spec.annotation.SpecWriter;
-import com.aliyun.dataworks.common.spec.domain.noref.SpecDepend;
-import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
-import com.aliyun.dataworks.common.spec.writer.SpecWriterContext;
-
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 
+import com.aliyun.dataworks.common.spec.annotation.SpecWriter;
+import com.aliyun.dataworks.common.spec.domain.noref.SpecDepend;
+import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
+import com.aliyun.dataworks.common.spec.writer.SpecWriterContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -45,7 +44,7 @@ public class SpecFlowDependWriter extends DefaultJsonObjectWriter<SpecFlowDepend
     public JSONObject write(SpecFlowDepend specObj, SpecWriterContext context) {
         if (specObj.getNodeId() == null || specObj.getNodeId().getId() == null) {
             log.error("invalid spec flow depend: {}", JSON.toJSONString(specObj));
-            throw new RuntimeException("invalid spec flow dependent");
+            return null;
         }
 
         JSONObject json = writeJsonObject(specObj, true);
@@ -61,8 +60,8 @@ public class SpecFlowDependWriter extends DefaultJsonObjectWriter<SpecFlowDepend
 
         JSONArray jsonArray = new JSONArray();
         ListUtils.emptyIfNull(depends).stream()
-                .map(this::writeByWriter)
-                .forEach(jsonArray::add);
+            .map(this::writeByWriter)
+            .forEach(jsonArray::add);
         return jsonArray;
     }
 }

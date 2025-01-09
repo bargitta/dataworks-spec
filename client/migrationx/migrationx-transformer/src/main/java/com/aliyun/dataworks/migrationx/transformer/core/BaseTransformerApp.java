@@ -23,6 +23,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.standard.objects.Package
 import com.aliyun.dataworks.migrationx.transformer.core.checkpoint.file.LocalFileCheckPoint;
 import com.aliyun.dataworks.migrationx.transformer.core.transformer.Transformer;
 import com.aliyun.migrationx.common.context.TransformerContext;
+import com.aliyun.migrationx.common.utils.JSONUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -63,6 +64,7 @@ public abstract class BaseTransformerApp extends CommandApp {
 
     @Override
     public void run(String[] args) {
+        LOGGER.info("Transformer App started with {}", JSONUtils.toJsonString(args));
         Options options = new Options();
         options.addRequiredOption("c", "config", true, "transform configuration file path");
         options.addRequiredOption("s", "sourcePackage", true, "source package file path");
@@ -88,6 +90,7 @@ public abstract class BaseTransformerApp extends CommandApp {
             helpFormatter.printHelp("Options", HEADER, options, EXAMPLE);
             System.exit(-1);
         } catch (Exception e) {
+            LOGGER.error("transformer error: {}", e);
             throw new RuntimeException(e);
         }
     }

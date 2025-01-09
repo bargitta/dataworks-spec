@@ -17,7 +17,6 @@ package com.aliyun.dataworks.migrationx.transformer.dataworks.transformer;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,20 +36,15 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.service.impl.DataWorksDw
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.impl.DataWorksSpecPackageFileService;
 import com.aliyun.dataworks.migrationx.transformer.core.transformer.AbstractPackageTransformer;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.AbstractDolphinSchedulerConverter;
-import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v1.DolphinSchedulerV1Converter;
-import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v2.DolphinSchedulerV2Converter;
-import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v3.DolphinSchedulerV3Converter;
+import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v1.nodes.DolphinSchedulerV1Converter;
+import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v2.nodes.DolphinSchedulerV2Converter;
+import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v3.nodes.DolphinSchedulerV3Converter;
 import com.aliyun.migrationx.common.context.TransformerContext;
 import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
-import com.aliyun.migrationx.common.utils.Config;
-import com.aliyun.migrationx.common.utils.GsonUtils;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,21 +57,22 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class DataWorksDolphinSchedulerTransformer extends AbstractPackageTransformer<DolphinSchedulerPackage, DataWorksPackage> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DataWorksDolphinSchedulerTransformer.class);
-    private File packageFile;
-    private DwProject dwProject;
-    private DataWorksTransformerConfig dataWorksTransformerConfig;
-    private Properties converterProperties;
+    protected File packageFile;
+    protected DwProject dwProject;
+    protected DataWorksTransformerConfig dataWorksTransformerConfig;
+    protected Properties converterProperties;
 
-    public DataWorksDolphinSchedulerTransformer(File configFile, DolphinSchedulerPackage sourcePacakgeFile,
+    public DataWorksDolphinSchedulerTransformer(DataWorksTransformerConfig dataWorksTransformerConfig, DolphinSchedulerPackage sourcePacakgeFile,
             DataWorksPackage targetPackageFile) {
-        super(configFile, sourcePacakgeFile, targetPackageFile);
+        super(null, sourcePacakgeFile, targetPackageFile);
+        this.dataWorksTransformerConfig = dataWorksTransformerConfig;
     }
 
     @Override
     public void init() throws Exception {
         this.sourcePackageFileService = new DolphinSchedulerPackageFileService();
 
-        initConfig(this.configFile);
+        initConfig();
         log.info("target package format: {}", this.dataWorksTransformerConfig.getFormat());
 
         switch (this.dataWorksTransformerConfig.getFormat()) {
@@ -85,6 +80,7 @@ public class DataWorksDolphinSchedulerTransformer extends AbstractPackageTransfo
                 this.targetPackageFileService = new DataWorksDwmaPackageFileService();
                 break;
             case SPEC:
+            case WORKFLOW:
                 this.targetPackageFileService = new DataWorksSpecPackageFileService();
                 break;
             default:
@@ -95,22 +91,7 @@ public class DataWorksDolphinSchedulerTransformer extends AbstractPackageTransfo
         this.targetPackageFileService.setLocale(this.dataWorksTransformerConfig.getLocale());
     }
 
-    private void initConfig(File configFile) throws IOException {
-        if (!configFile.exists()) {
-            log.error("config file not exists: {}", configFile);
-            throw new BizException(ErrorCode.FILE_NOT_FOUND).with(configFile);
-        }
-
-        String config = FileUtils.readFileToString(configFile, StandardCharsets.UTF_8);
-        this.dataWorksTransformerConfig
-                = JSONUtils.parseObject(config, new TypeReference<DataWorksTransformerConfig>() {});
-        if (this.dataWorksTransformerConfig == null) {
-            log.error("config file: {}, config class: {}", configFile, DataWorksTransformerConfig.class);
-            throw new BizException(ErrorCode.PARSE_CONFIG_FILE_FAILED).with(configFile);
-        }
-        Config dwConfig = GsonUtils.fromJsonString(config, new TypeToken<Config>() {}.getType());
-        Config.init(dwConfig);
-
+    private void initConfig() throws IOException {
         this.dwProject = Optional.ofNullable(this.dataWorksTransformerConfig.getProject()).orElseGet(() -> {
             DwProject p = new DwProject();
             p.setName("tmp_transform_project");

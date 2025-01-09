@@ -28,7 +28,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.aliyun.migrationx.common.utils.BeanUtils;
 import com.aliyun.migrationx.common.utils.GsonUtils;
+
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.emr.model.v20160408.DescribeFlowCategoryRequest;
 import com.aliyuncs.emr.model.v20160408.DescribeFlowCategoryResponse;
@@ -56,7 +58,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 
 /**
  * @author sam.liux

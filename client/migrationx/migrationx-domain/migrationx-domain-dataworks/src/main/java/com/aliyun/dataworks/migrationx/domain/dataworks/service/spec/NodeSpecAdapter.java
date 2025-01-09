@@ -28,6 +28,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.alibaba.fastjson2.JSONWriter.Feature;
+
 import com.aliyun.dataworks.common.spec.adapter.SpecAdapter;
 import com.aliyun.dataworks.common.spec.adapter.SpecHandlerContext;
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
@@ -55,9 +57,6 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.DependentT
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.entity.DwNodeEntity;
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.handler.BasicNodeSpecHandler;
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.handler.ComponentSpecHandler;
-
-import com.alibaba.fastjson2.JSONWriter.Feature;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
@@ -82,14 +81,14 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
         Reflections reflections = new Reflections(BasicNodeSpecHandler.class.getPackage().getName());
         Set<Class<? extends BasicNodeSpecHandler>> handlerClasses = reflections.getSubTypesOf(BasicNodeSpecHandler.class);
         SetUtils.emptyIfNull(handlerClasses).stream()
-                .filter(h -> !h.equals(BasicNodeSpecHandler.class))
-                .forEach(this::registerHandler);
+            .filter(h -> !h.equals(BasicNodeSpecHandler.class))
+            .forEach(this::registerHandler);
     }
 
     public String getNodeSpec(DwNodeEntity dmNodeBO, SpecHandlerContext context) {
         context.setSpecAdapter(this);
         SpecWriterContext specWriterContext = new SpecWriterContext();
-        SpecificationWriter writer = (SpecificationWriter) WriterFactory.getWriter(Specification.class, specWriterContext);
+        SpecificationWriter writer = (SpecificationWriter)WriterFactory.getWriter(Specification.class, specWriterContext);
         return writer.write(getNodeSpecObject(dmNodeBO, context), specWriterContext).toJSONString(Feature.PrettyFormat);
     }
 
@@ -97,13 +96,17 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
         Preconditions.checkNotNull(dwNode, "node is null");
         context.setSpecAdapter(this);
         Specification<DataWorksWorkflowSpec> spec = new Specification<>();
+        DataWorksWorkflowSpec dataWorksWorkflowSpec = new DataWorksWorkflowSpec();
         spec.setVersion(SpecVersion.V_1_1_0.getLabel());
         spec.setKind(Optional.ofNullable(dwNode.getNodeUseType()).map(useType -> {
             switch (useType) {
                 case MANUAL:
                     return SpecKind.MANUAL_NODE.getLabel();
-                case MANUAL_WORKFLOW:
+                case MANUAL_WORKFLOW: {
+                    dataWorksWorkflowSpec.setId(Optional.ofNullable(dwNode.getBizId()).filter(id -> id > 0).map(String::valueOf).orElse(null));
+                    dataWorksWorkflowSpec.setName(dwNode.getBizName());
                     return SpecKind.MANUAL_WORKFLOW.getLabel();
+                }
                 case COMPONENT:
                     return SpecKind.COMPONENT.getLabel();
                 default:
@@ -113,9 +116,6 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("owner", dwNode.getOwner());
         spec.setMetadata(metadata);
-        DataWorksWorkflowSpec dataWorksWorkflowSpec = new DataWorksWorkflowSpec();
-        dataWorksWorkflowSpec.setId(Optional.ofNullable(dwNode.getBizId()).filter(id -> id > 0).map(String::valueOf).orElse(null));
-        dataWorksWorkflowSpec.setName(Optional.ofNullable(dwNode.getBizName()).orElse(null));
         spec.setSpec(dataWorksWorkflowSpec);
 
         Optional.ofNullable(spec.getKind()).map(kind -> LabelEnum.getByLabel(SpecKind.class, kind)).ifPresent(kind -> {
@@ -125,7 +125,7 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
                 Optional.ofNullable(handler.handle(dwNode)).ifPresent(nodes::add);
                 dataWorksWorkflowSpec.setComponents(nodes);
             } else {
-                BasicNodeSpecHandler nodeSpecHandler = (BasicNodeSpecHandler) getHandler(dwNode, context.getLocale());
+                BasicNodeSpecHandler nodeSpecHandler = (BasicNodeSpecHandler)getHandler(dwNode, context.getLocale());
                 nodeSpecHandler.setContext(context);
                 dataWorksWorkflowSpec.setFlow(toFlow(nodeSpecHandler, dwNode, context));
                 List<SpecNode> nodes = new ArrayList<>();
@@ -176,7 +176,7 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
 
         flowDepend.setNodeId(nodeId);
         List<NodeIO> inputs = handler.getNodeInputs(dmNodeBo);
-        flowDepend.setDepends(ListUtils.emptyIfNull(inputs).stream().map(in -> (SpecNodeOutput) in).map(dep -> {
+        flowDepend.setDepends(ListUtils.emptyIfNull(inputs).stream().map(in -> (SpecNodeOutput)in).map(dep -> {
             SpecDepend specDepend = new SpecDepend();
             specDepend.setType(DependencyType.NORMAL);
             SpecNodeOutput art = new SpecNodeOutput();
@@ -188,21 +188,21 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
         }).collect(Collectors.toList()));
 
         if (Stream.of(DependentType.USER_DEFINE, DependentType.USER_DEFINE_AND_SELF).anyMatch(
-                dt -> Objects.equals(dmNodeBo.getDependentType(), dt.getValue()) && StringUtils.isNotBlank(dmNodeBo.getDependentDataNode()))) {
+            dt -> Objects.equals(dmNodeBo.getDependentType(), dt.getValue()) && StringUtils.isNotBlank(dmNodeBo.getDependentDataNode()))) {
             Optional.ofNullable(StringUtils.split(dmNodeBo.getDependentDataNode(), ",")).map(Arrays::asList).orElse(new ArrayList<>()).stream().map(
-                    out -> {
-                        SpecDepend specDepend = new SpecDepend();
-                        specDepend.setType(DependencyType.CROSS_CYCLE_OTHER_NODE);
-                        SpecNodeOutput art = new SpecNodeOutput();
-                        art.setData(out);
-                        art.setArtifactType(ArtifactType.NODE_OUTPUT);
-                        specDepend.setOutput(art);
-                        return specDepend;
-                    }).forEach(sp -> flowDepend.getDepends().add(sp));
+                out -> {
+                    SpecDepend specDepend = new SpecDepend();
+                    specDepend.setType(DependencyType.CROSS_CYCLE_OTHER_NODE);
+                    SpecNodeOutput art = new SpecNodeOutput();
+                    art.setData(out);
+                    art.setArtifactType(ArtifactType.NODE_OUTPUT);
+                    specDepend.setOutput(art);
+                    return specDepend;
+                }).forEach(sp -> flowDepend.getDepends().add(sp));
         }
 
         if (Stream.of(DependentType.SELF, DependentType.USER_DEFINE_AND_SELF, DependentType.CHILD_AND_SELF).anyMatch(
-                dt -> Objects.equals(dt.getValue(), dmNodeBo.getDependentType()))) {
+            dt -> Objects.equals(dt.getValue(), dmNodeBo.getDependentType()))) {
             SpecDepend specDepend = new SpecDepend();
             specDepend.setType(DependencyType.CROSS_CYCLE_SELF);
             specDepend.setNodeId(nodeId);

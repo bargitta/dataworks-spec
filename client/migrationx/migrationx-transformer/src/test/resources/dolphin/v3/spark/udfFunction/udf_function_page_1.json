@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "funcName": "Strip",
+    "className": "org.hardik.letsdobigdata.Strip",
+    "description": "",
+    "resourceId": 7,
+    "resourceName": "udf-dir1/HiveUDFs-0.0.1-SNAPSHOT.jar",
+    "type": "HIVE",
+    "createTime": "2024-05-20 20:55:35",
+    "updateTime": "2024-05-20 20:55:35"
+  }
+]

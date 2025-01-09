@@ -19,17 +19,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwWorkflow;
 import com.aliyun.dataworks.migrationx.transformer.core.checkpoint.file.LocalFileCheckPoint;
 
-public interface CheckPoint<WRITER extends StoreWriter> {
+public interface CheckPoint<WRITER extends StoreWriter, SPEC> {
     ThreadLocal<CheckPoint> INSTANCE = ThreadLocal.withInitial(() -> new LocalFileCheckPoint());
 
-    List<DwWorkflow> doWithCheckpoint(Function<WRITER, List<DwWorkflow>> func, String projectName);
+    List<SPEC> doWithCheckpoint(Function<WRITER, List<SPEC>> func, String projectName);
 
-    void doCheckpoint(WRITER writer, List<DwWorkflow> workflows, String processName, String taskName);
+    void doCheckpoint(WRITER writer, List<SPEC> workflows, String processName, String taskName);
 
-    Map<String, List<DwWorkflow>> loadFromCheckPoint(String projectName, String processName);
+    Map<String, List<SPEC>> loadFromCheckPoint(String projectName, String processName);
 
     static CheckPoint getInstance() {
         return INSTANCE.get();
