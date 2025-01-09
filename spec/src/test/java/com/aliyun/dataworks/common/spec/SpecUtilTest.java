@@ -2064,4 +2064,20 @@ public class SpecUtilTest {
         Assert.assertEquals(subnode.getId(), parsed.getSpec().getNodes().get(0).getSubflow().getNodes().get(0).getId());
         Assert.assertEquals(subnode.getName(), parsed.getSpec().getNodes().get(0).getSubflow().getNodes().get(0).getName());
     }
+
+    @Test
+    public void testFlowDependWithNoNodeId() {
+        Specification<DataWorksWorkflowSpec> sp = new Specification<>();
+        sp.setKind(SpecKind.CYCLE_WORKFLOW.getLabel());
+        sp.setVersion(SpecVersion.V_1_2_0.getLabel());
+        DataWorksWorkflowSpec spec = new DataWorksWorkflowSpec();
+        sp.setSpec(spec);
+        SpecNode node = new SpecNode();
+        spec.setNodes(Collections.singletonList(node));
+        spec.setFlow(Collections.singletonList(new SpecFlowDepend()));
+        JSONObject js = JSON.parseObject(SpecUtil.writeToSpec(sp));
+        Assert.assertNotNull(js);
+        Assert.assertTrue(js.containsKey("spec"));
+        Assert.assertTrue(js.getJSONObject("spec").containsKey("flow"));
+    }
 }

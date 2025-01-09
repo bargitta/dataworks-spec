@@ -1,22 +1,5 @@
 package com.aliyun.dataworks.migrationx.transformer.dataworks.converter.adf;
 
-import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
-import com.aliyun.dataworks.common.spec.domain.enums.*;
-import com.aliyun.dataworks.common.spec.domain.interfaces.Output;
-import com.aliyun.dataworks.common.spec.domain.noref.SpecDepend;
-import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
-import com.aliyun.dataworks.common.spec.domain.noref.SpecSubFlow;
-import com.aliyun.dataworks.common.spec.domain.ref.*;
-import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
-import com.aliyun.dataworks.migrationx.domain.adf.AdfConf;
-import com.aliyun.dataworks.migrationx.domain.adf.AdfPackage;
-import com.aliyun.dataworks.migrationx.domain.adf.Pipeline;
-import com.aliyun.dataworks.migrationx.domain.adf.Trigger;
-import com.google.common.collect.ImmutableList;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -27,6 +10,35 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.validation.constraints.NotNull;
+
+import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
+import com.aliyun.dataworks.common.spec.domain.enums.ArtifactType;
+import com.aliyun.dataworks.common.spec.domain.enums.DependencyType;
+import com.aliyun.dataworks.common.spec.domain.enums.FlowType;
+import com.aliyun.dataworks.common.spec.domain.enums.NodeInstanceModeType;
+import com.aliyun.dataworks.common.spec.domain.enums.NodeRecurrenceType;
+import com.aliyun.dataworks.common.spec.domain.enums.NodeRerunModeType;
+import com.aliyun.dataworks.common.spec.domain.enums.TriggerType;
+import com.aliyun.dataworks.common.spec.domain.interfaces.Output;
+import com.aliyun.dataworks.common.spec.domain.noref.SpecDepend;
+import com.aliyun.dataworks.common.spec.domain.noref.SpecFlowDepend;
+import com.aliyun.dataworks.common.spec.domain.noref.SpecSubFlow;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecNodeOutput;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecScript;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecTrigger;
+import com.aliyun.dataworks.common.spec.domain.ref.SpecWorkflow;
+import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
+import com.aliyun.dataworks.migrationx.domain.adf.AdfConf;
+import com.aliyun.dataworks.migrationx.domain.adf.AdfPackage;
+import com.aliyun.dataworks.migrationx.domain.adf.Pipeline;
+import com.aliyun.dataworks.migrationx.domain.adf.Trigger;
+
+import com.google.common.collect.ImmutableList;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 @Slf4j
 public class AdfConverter {

@@ -30,10 +30,10 @@ import org.apache.commons.collections4.MapUtils;
  */
 @Slf4j
 public class CommandAppFactory {
-    private static final Map<AppType, Map<String, Class<? extends CommandApp>>> commandApps = new HashMap<>();
+    private static final Map<AppType, Map<String, String>> commandApps = new HashMap<>();
 
-    public static void register(AppType appType, String appName, Class<? extends CommandApp> readerAppClz) {
-        Map<String, Class<? extends CommandApp>> apps = commandApps.computeIfAbsent(appType, type -> new HashMap<>());
+    public static void register(AppType appType, String appName, String readerAppClz) {
+        Map<String, String> apps = commandApps.computeIfAbsent(appType, type -> new HashMap<>());
         if (apps.containsKey(appName)) {
             return;
         }
@@ -42,19 +42,21 @@ public class CommandAppFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends CommandApp> T create(AppType appType, String appName) throws InstantiationException, IllegalAccessException {
+    public static <T extends CommandApp> T create(AppType appType, String appName) throws InstantiationException,
+            IllegalAccessException, ClassNotFoundException {
         if (!commandApps.containsKey(appType)) {
             throw new RuntimeException("unregistered app type: " + appType);
         }
 
-        Map<String, Class<? extends CommandApp>> apps = commandApps.get(appType);
+        Map<String, String> apps = commandApps.get(appType);
         if (!apps.containsKey(appName)) {
             log.error("appName: {} not found in apps: {}", appName, apps);
             throw new RuntimeException("unregistered app name: " + appName);
         }
 
-        Class<? extends CommandApp> clz = apps.get(appName);
-        return (T)clz.newInstance();
+        String clz = apps.get(appName);
+        Class clazz = Class.forName(clz);
+        return (T) clazz.newInstance();
     }
 
     public static Map<AppType, List<String>> getApps() {

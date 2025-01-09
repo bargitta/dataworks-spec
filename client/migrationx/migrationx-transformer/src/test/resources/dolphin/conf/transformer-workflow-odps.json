@@ -1,0 +1,19 @@
+{
+  "format": "WORKFLOW",
+  "locale": "zh_CN",
+  "skipUnSupportType": true,
+  "transformContinueWithError": true,
+  "specContinueWithError": true,
+  "settings": {
+    "workflow.converter.shellNodeType": "DIDE_SHELL",
+    "workflow.converter.commandSqlAs": "ODPS_SQL",
+    "workflow.converter.sparkSubmitAs": "ODPS_SPARK",
+    "workflow.converter.target.unknownNodeTypeAs": "DIDE_SHELL",
+    "workflow.converter.mrNodeType": "ODPS_MR",
+    "workflow.converter.target.engine.type": "ODPS",
+    "workflow.converter.dolphinscheduler.sqlNodeTypeMapping": {
+      "POSTGRESQL": "POSTGRESQL",
+      "MYSQL": "MYSQL"
+    }
+  }
+}

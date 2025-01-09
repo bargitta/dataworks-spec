@@ -1,0 +1,97 @@
+[
+  {
+    "processDefinition": {
+      "id": 10,
+      "code": 14140238584736,
+      "name": "mr12",
+      "version": 1,
+      "releaseState": "OFFLINE",
+      "projectCode": 13942964612128,
+      "description": "",
+      "globalParams": "[]",
+      "globalParamList": [],
+      "globalParamMap": {},
+      "createTime": "2024-07-02 14:16:53",
+      "updateTime": "2024-07-02 14:16:53",
+      "flag": "YES",
+      "userId": 1,
+      "userName": null,
+      "projectName": null,
+      "locations": "[{\"taskCode\":14140233200032,\"x\":616.9176025390625,\"y\":200.1889190673828}]",
+      "scheduleReleaseState": null,
+      "timeout": 0,
+      "modifyBy": null,
+      "warningGroupId": null,
+      "executionType": "PARALLEL"
+    },
+    "processTaskRelationList": [
+      {
+        "id": 18,
+        "name": "",
+        "processDefinitionVersion": 1,
+        "projectCode": 13942964612128,
+        "processDefinitionCode": 14140238584736,
+        "preTaskCode": 0,
+        "preTaskVersion": 0,
+        "postTaskCode": 14140233200032,
+        "postTaskVersion": 1,
+        "conditionType": "NONE",
+        "conditionParams": {},
+        "createTime": "2024-07-02 14:16:53",
+        "updateTime": "2024-07-02 14:16:53",
+        "operator": 1,
+        "operateTime": "2024-07-02 14:16:53"
+      }
+    ],
+    "taskDefinitionList": [
+      {
+        "id": 18,
+        "code": 14140233200032,
+        "name": "mr2",
+        "version": 1,
+        "description": "",
+        "projectCode": 13942964612128,
+        "userId": 1,
+        "taskType": "MR",
+        "taskParams": {
+          "localParams": [],
+          "resourceList": [],
+          "programType": "JAVA",
+          "mainClass": "org.apache.hadoop.examples.WordCount",
+          "mainJar": {
+            "resourceName": "dolphinscheduler/default/resources/hadoop-mapreduce-examples-3.2.1.jar"
+          },
+          "appName": "test1",
+          "yarnQueue": ""
+        },
+        "taskParamList": [],
+        "taskParamMap": null,
+        "flag": "YES",
+        "isCache": "NO",
+        "taskPriority": "MEDIUM",
+        "userName": null,
+        "projectName": null,
+        "workerGroup": "default",
+        "environmentCode": -1,
+        "failRetryTimes": 0,
+        "failRetryInterval": 1,
+        "timeoutFlag": "CLOSE",
+        "timeoutNotifyStrategy": null,
+        "timeout": 0,
+        "delayTime": 0,
+        "resourceIds": null,
+        "createTime": "2024-07-02 14:16:53",
+        "updateTime": "2024-07-02 14:16:53",
+        "modifyBy": null,
+        "taskGroupId": 0,
+        "taskGroupPriority": 0,
+        "cpuQuota": -1,
+        "memoryMax": -1,
+        "taskExecuteType": "BATCH",
+        "operator": 1,
+        "operateTime": "2024-07-02 14:16:53"
+      }
+    ],
+    "schedule": null
+  }
+]

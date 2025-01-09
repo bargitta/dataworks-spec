@@ -92,7 +92,7 @@ public class DefaultJsonFormCode extends JsonObjectCode implements JsonFormCode 
     @Override
     public List<String> getProgramTypes() {
         return Stream
-            .of(CodeProgramType.HOLOGRES_SYNC_DATA, CodeProgramType.HOLOGRES_SYNC_DDL)
+            .of(CodeProgramType.HOLOGRES_SYNC_DATA, CodeProgramType.HOLOGRES_SYNC_DDL, CodeProgramType.PAI_STUDIO)
             .map(CodeProgramType::name).distinct().collect(Collectors.toList());
     }
 

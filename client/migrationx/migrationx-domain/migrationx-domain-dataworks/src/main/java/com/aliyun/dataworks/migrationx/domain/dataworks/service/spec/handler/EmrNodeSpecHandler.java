@@ -28,9 +28,10 @@ import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
 import com.aliyun.dataworks.common.spec.utils.ReflectUtils;
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.spec.entity.DwNodeEntity;
+import com.aliyun.migrationx.common.utils.BeanUtils;
+
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 
 /**
  * EMR节点处理器

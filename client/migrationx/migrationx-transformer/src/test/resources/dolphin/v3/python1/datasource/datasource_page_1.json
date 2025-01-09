@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1,
+    "userId": 1,
+    "userName": "admin",
+    "name": "pg1",
+    "note": "pg1 test",
+    "type": "POSTGRESQL",
+    "connectionParams": "{\"user\":\"feilun\",\"password\":\"******\",\"address\":\"jdbc:postgresql://pgm-2ze5n0y3qv3v3wr4fo.pg.rds.aliyuncs.com:5432\",\"database\":\"test1\",\"jdbcUrl\":\"jdbc:postgresql://pgm-2ze5n0y3qv3v3wr4fo.pg.rds.aliyuncs.com:5432/test1\",\"driverClassName\":\"org.postgresql.Driver\",\"validationQuery\":\"select version()\"}",
+    "createTime": "2024-05-20 20:10:54",
+    "updateTime": "2024-05-20 20:10:54"
+  }
+]

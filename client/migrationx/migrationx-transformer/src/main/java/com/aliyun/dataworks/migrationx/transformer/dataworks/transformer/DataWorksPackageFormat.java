@@ -28,5 +28,7 @@ public enum DataWorksPackageFormat {
     /**
      * Spec格式
      */
-    SPEC
+    SPEC,
+
+    WORKFLOW
 }

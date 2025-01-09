@@ -35,6 +35,11 @@ public class ResourceInfo {
 
     private String type;
 
+    /**
+     * full name of the resource that was uploaded
+     */
+    private String resourceName;
+
     public ResourceInfo() {
         // do nothing, void constructor
     }
@@ -77,5 +82,13 @@ public class ResourceInfo {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getResourceName() {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
     }
 }

@@ -1,0 +1,29 @@
+{
+	"version":"1.1.0",
+	"kind":"CycleWorkflow",
+	"spec":{
+		"nodes":[
+			{
+				"recurrence":"Normal",
+				"id":"e2f7ce7c-e5ee-49aa-a13f-2958006e257e",
+				"instanceMode":"T+1",
+				"rerunMode":"Allowed",
+				"script":{
+					"path":"业务流程/test_flow1/MaxCompute/数据开发",
+					"runtime":{
+						"engine":"MaxCompute",
+						"command":"ODPS_SQL"
+					},
+					"id":"e2f7ce7c-e5ee-49aa-a13f-2958006e257e"
+				},
+				"name":"test1",
+				"inputs":{
+					
+				},
+				"outputs":{
+					
+				}
+			}
+		]
+	}
+}

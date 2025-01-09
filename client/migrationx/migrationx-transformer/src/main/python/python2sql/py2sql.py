@@ -17,7 +17,7 @@ engine_mapping = {
     'ad': 'xingye_ad'
 }
 comment_annotation = '-- '
-sql_names = ['sql']
+sql_names = ['sql', 'TARGET_SQL']
 parameters = []
 
 

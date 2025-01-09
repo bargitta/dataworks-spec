@@ -15,6 +15,15 @@
 
 package com.aliyun.dataworks.migrationx.transformer.core.loader;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.aliyun.dataworks.migrationx.domain.dataworks.constants.DataWorksConstants;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwFunction;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
@@ -27,7 +36,9 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.utils.DefaultNodeTypeUti
 import com.aliyun.dataworks.migrationx.domain.dataworks.utils.ResourceUtils;
 import com.aliyun.dataworks.migrationx.transformer.core.common.Constants;
 import com.aliyun.dataworks.migrationx.transformer.core.controller.Task;
+import com.aliyun.migrationx.common.utils.BeanUtils;
 import com.aliyun.migrationx.common.utils.GsonUtils;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.gson.JsonObject;
@@ -37,12 +48,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author sam.liux

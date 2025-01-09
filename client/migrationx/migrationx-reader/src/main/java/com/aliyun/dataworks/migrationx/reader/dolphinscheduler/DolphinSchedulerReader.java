@@ -48,6 +48,9 @@ import com.aliyun.migrationx.common.utils.PaginateUtils;
 import com.aliyun.migrationx.common.utils.ZipUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -263,7 +266,7 @@ public class DolphinSchedulerReader {
         }
         List<JsonElement> resources = new ArrayList<>();
         Arrays.asList("FILE", "UDF").forEach(type -> {
-            visitResourceByFolder(type, null, resourceDir, resources);
+            visitResourceByFolder(type, null, -1, resourceDir, resources);
         });
 
         try {
@@ -276,12 +279,12 @@ public class DolphinSchedulerReader {
         }
     }
 
-    private void visitResourceByFolder(String type, String fullName, File resourceDir, List<JsonElement> resources) {
+    private void visitResourceByFolder(String type, String fullName, int dirId, File resourceDir, List<JsonElement> resources) {
         try {
             int pageNum = 1;
             int pageSize = 100;
             while (true) {
-                List<JsonElement> data = getResource(type, fullName, pageNum, pageSize);
+                List<JsonElement> data = getResource(type, fullName, dirId, pageNum, pageSize);
                 if (data == null) {
                     break;
                 }
@@ -296,7 +299,8 @@ public class DolphinSchedulerReader {
                             currentDir = currentDir + File.separator + component.getFileName();
                         }
                         File visitDir = new File(currentDir);
-                        visitResourceByFolder(type, component.getFullName(), visitDir, resources);
+                        //todo lower version has no fullName
+                        visitResourceByFolder(type, component.getFullName(), component.getId(), visitDir, resources);
                     } else {
                         if (!BooleanUtils.isTrue(skipResources)) {
                             if (!resourceDir.exists()) {
@@ -317,10 +321,11 @@ public class DolphinSchedulerReader {
         }
     }
 
-    private List<JsonElement> getResource(String type, String fullName, int pageNum, int pageSize) throws Exception {
+    private List<JsonElement> getResource(String type, String fullName, int dirId, int pageNum, int pageSize) throws Exception {
         QueryResourceListRequest queryResourceListRequest = new QueryResourceListRequest();
         queryResourceListRequest.setType(type);
         queryResourceListRequest.setFullName(fullName);
+        queryResourceListRequest.setDirId(dirId);
         List<JsonElement> response = dolphinSchedulerApiService.queryResourceListByPage(
                 queryResourceListRequest, pageNum, pageSize);
         return response;
@@ -443,6 +448,9 @@ public class DolphinSchedulerReader {
                     if (jsonNode.has("code") && jsonNode.get("code").asInt() > 0) {
                         throw new RuntimeException(response);
                     }
+                    if (isVersion1()) {
+                        setProcessId(processDefinitions, jsonNode);
+                    }
                     FileUtils.writeStringToFile(
                             new File(processDefinitionDir, "process_definitions_page_" + p.getPageNum() + ".json"),
                             JSONUtils.toPrettyString(jsonNode),
@@ -459,6 +467,29 @@ public class DolphinSchedulerReader {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    private void setProcessId(List<JsonObject> processDefinitions, JsonNode jsonNode) {
+        //List<ProcessMeta> processMetas = GsonUtils.fromJsonString(response, new TypeToken<List<ProcessMeta>>() {}.getType());
+        Map<String, Integer> nameIdMap = Maps.newHashMap();
+        for (JsonObject process : processDefinitions) {
+            Integer id = null;
+            String name = null;
+            if (process.has("name")) {
+                name = process.get("name").getAsString();
+            }
+            if (process.has("id")) {
+                id = process.get("id").getAsInt();
+            }
+            nameIdMap.put(name, id);
+        }
+
+        ArrayNode arrayNode = (ArrayNode) jsonNode;
+        for (int i = 0; i < arrayNode.size(); i++) {
+            JsonNode process = arrayNode.get(i);
+            Integer id = nameIdMap.get(process.get("processDefinitionName").asText());
+            ((ObjectNode) process).put("processDefinitionId", id);
+        }
     }
 
     private int queryProcessDefinitionCount(String project) throws Exception {

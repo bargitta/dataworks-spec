@@ -53,7 +53,7 @@ public class DolphinMetricsCollector implements MetricsCollector {
     private String transformerType;
     private Date startTime;
 
-    private Consumer<Metrics> defaultMetricsConsumer = metrics -> metricsLogger.warn("{}", GSON.toJson(metrics));
+    private Consumer<Metrics> defaultMetricsConsumer = metrics -> metricsLogger.info("{}", GSON.toJson(metrics));
 
     public DolphinMetricsCollector() {
         startTime = new Date();
@@ -172,7 +172,7 @@ public class DolphinMetricsCollector implements MetricsCollector {
 
     @Override
     public void finishCollector() {
-        finishCollector((summary) -> summaryLogger.warn("{}", PrettyGson.toJson(summary)));
+        finishCollector((summary) -> summaryLogger.info("{}", PrettyGson.toJson(summary)));
     }
 
     @Override

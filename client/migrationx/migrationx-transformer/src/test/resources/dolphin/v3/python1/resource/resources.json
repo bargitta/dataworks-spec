@@ -1,0 +1,36 @@
+[
+  {
+    "id": 5,
+    "pid": -1,
+    "name": "udf-dir1",
+    "fullName": "udf-dir1",
+    "description": "ddd",
+    "children": [
+      {
+        "id": 7,
+        "pid": 5,
+        "name": "HiveUDFs-0.0.1-SNAPSHOT.jar",
+        "fullName": "udf-dir1HiveUDFs-0.0.1-SNAPSHOT.jar",
+        "description": "",
+        "children": [],
+        "type": "UDF",
+        "idValue": "7_0",
+        "dirctory": false
+      },
+      {
+        "id": 6,
+        "pid": 5,
+        "name": "commons-cli-1.4.jar",
+        "fullName": "udf-dir1/commons-cli-1.4.jar",
+        "description": "",
+        "children": [],
+        "type": "UDF",
+        "idValue": "6_0",
+        "dirctory": false
+      }
+    ],
+    "type": "UDF",
+    "idValue": "5_1",
+    "dirctory": true
+  }
+]

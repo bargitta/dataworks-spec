@@ -1,0 +1,22 @@
+[
+  {
+    "id": 0,
+    "pid": "dolphinscheduler/default/resources/",
+    "name": "hadoop-mapreduce-examples-3.2.1.jar",
+    "fullName": "dolphinscheduler/default/resources/hadoop-mapreduce-examples-3.2.1.jar",
+    "children": [],
+    "type": "FILE",
+    "idValue": "0_0",
+    "dirctory": false
+  },
+  {
+    "id": 0,
+    "pid": "dolphinscheduler/default/resources/",
+    "name": "original-spark-examples_2.12-3.2.0.jar",
+    "fullName": "dolphinscheduler/default/resources/original-spark-examples_2.12-3.2.0.jar",
+    "children": [],
+    "type": "FILE",
+    "idValue": "0_0",
+    "dirctory": false
+  }
+]

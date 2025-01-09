@@ -17,6 +17,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.mode
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwWorkflow;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.DolphinSchedulerConverterContext;
+import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v3.nodes.parameters.DLCParameterConverter;
 import com.aliyun.migrationx.common.context.TransformerContext;
 import com.aliyun.migrationx.common.utils.JSONUtils;
 
@@ -66,7 +67,7 @@ public class DLCParameterConverterTest {
             TransformerContext.getContext().setCustomResourceDir("src/test/resources/py2sql");
             TransformerContext.getContext().setScriptDir("src/main/python/python2sql");
             DLCParameterConverter converter = new DLCParameterConverter(processMeta, taskDefinition, converterContext);
-            List<DwNode> nodes = converter.doConvert();
+            List<DwNode> nodes = converter.convert();
             Assert.assertNotNull(nodes);
             Assert.assertTrue(nodes.size() > 0);
         } catch (Exception e) {

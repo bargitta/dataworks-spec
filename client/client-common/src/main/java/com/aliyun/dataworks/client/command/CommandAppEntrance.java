@@ -96,9 +96,9 @@ public class CommandAppEntrance {
                 appMeta.setName(appName);
                 appMeta.setType(appType);
                 log.info("register command app type: {}, name: {}, class: {}", appType, appName, appMeta.getAppClass());
-                CommandAppFactory.register(appType, appName, (Class<? extends CommandApp>)Class.forName(appMeta.getAppClass()));
-            } catch (ClassNotFoundException e) {
-                log.info("register command app failed, appType: {}, appName: {}, class: {}, error: ", appType, appName, appMeta.getAppClass(), e);
+                CommandAppFactory.register(appType, appName, appMeta.getAppClass());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }));
 

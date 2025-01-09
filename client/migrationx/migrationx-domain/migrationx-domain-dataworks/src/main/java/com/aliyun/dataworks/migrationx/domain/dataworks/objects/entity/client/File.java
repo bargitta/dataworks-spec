@@ -87,4 +87,8 @@ public class File {
     private Boolean ignoreLock;
 
     private String advanceSettings;
+    /**
+     * 绝对路径，目前只有ListFiles在needAbsoluteFolderPath时会用到
+     */
+    private String absoluteFolderPath;
 }

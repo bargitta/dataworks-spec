@@ -33,7 +33,7 @@ public enum CodeProgramType {
     SHELL(2, "SHELL", CalcEngineType.GENERAL, null, ".sh"),
     DIDE_SHELL(6, "DIDE_SHELL", CalcEngineType.GENERAL, null, ".sh"),
     PERL(31, "PERL", CalcEngineType.GENERAL, null, ".pl"),
-    SUB_PROCESS(1122, "SUB_PROCESS",CalcEngineType.GENERAL ,null ,null ),
+    SUB_PROCESS(1122, "SUB_PROCESS", CalcEngineType.GENERAL, null, null),
     VIRTUAL_WORKFLOW(97, "VIRTUAL_WORKFLOW", CalcEngineType.GENERAL, null, null),
     COMBINED_NODE(98, "COMBINED_NODE", CalcEngineType.GENERAL, null, null),
     VIRTUAL(99, "VIRTUAL", CalcEngineType.GENERAL, null, ".vi"),
@@ -52,6 +52,7 @@ public enum CodeProgramType {
     FTP_CHECK(1320, "FTP_CHECK", CalcEngineType.GENERAL, null, ".json"),
     SSH(1321, "SSH", CalcEngineType.GENERAL, null, ".ssh.sh"),
     CHECK(19, "CHECK", CalcEngineType.GENERAL, null, ".json"),
+    CHECK_NODE(241, "CHECK_NODE", CalcEngineType.GENERAL, null, ".json"),
     OSS_INSPECT(239, "OSS_INSPECT", CalcEngineType.GENERAL, null, ".json"),
     CROSS_TENANTS(1089, "CROSS_TENANTS", CalcEngineType.GENERAL, null, ".json"),
     PYTHON(1322, "PYTHON", CalcEngineType.GENERAL, null, ".py"),
@@ -167,7 +168,6 @@ public enum CodeProgramType {
 
     //only for temp
     CUSTOM(9999, "CUSTOM", CalcEngineType.CUSTOM, LabelType.DATA_PROCESS, ".json");
-
 
     private final int code;
     private final String name;

@@ -36,13 +36,13 @@ import com.aliyun.dataworks.migrationx.transformer.core.report.Reportable;
 import com.aliyun.dataworks.migrationx.transformer.core.spark.command.SparkSubmitCommandBuilder;
 import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
+
 import com.google.common.base.Joiner;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  * open source spark submit task to ODPS_SPARK
@@ -102,7 +102,7 @@ public class SparkSubmitTranslator implements Reportable, NodePropertyTranslator
     }
 
     private void convertSpark(DwWorkflow workflow, DwNode node, String calcEngineType) {
-        SparkSubmitCommandBuilder sparkSubmitCommandBuilder = getSparkSubmitCommandBuilder(node);
+        SparkSubmitCommandBuilder sparkSubmitCommandBuilder = getSparkSubmitCommandBuilder(node.getCode());
         if (sparkSubmitCommandBuilder == null) {
             return;
         }
@@ -138,7 +138,7 @@ public class SparkSubmitTranslator implements Reportable, NodePropertyTranslator
     }
 
     private void convertToOdpsSpark(DwWorkflow workflow, DwNode node) {
-        SparkSubmitCommandBuilder sparkSubmitCommandBuilder = getSparkSubmitCommandBuilder(node);
+        SparkSubmitCommandBuilder sparkSubmitCommandBuilder = getSparkSubmitCommandBuilder(node.getCode());
 
         String calcEngineType = "odps";
         List<String> appResources = handleResources(workflow, Arrays.asList(sparkSubmitCommandBuilder.getAppResource()),
@@ -192,9 +192,9 @@ public class SparkSubmitTranslator implements Reportable, NodePropertyTranslator
         node.setType(CodeProgramType.ODPS_SPARK.name());
     }
 
-    private SparkSubmitCommandBuilder getSparkSubmitCommandBuilder(DwNode node) {
+    private SparkSubmitCommandBuilder getSparkSubmitCommandBuilder(String code) {
         List<String> args = new ArrayList<>(
-            Arrays.asList(node.getCode().split(" "))
+                Arrays.asList(code.split(" "))
                 .stream()
                 .filter(str -> str.trim().length() > 0)
                 .map(String::trim)
@@ -208,7 +208,7 @@ public class SparkSubmitTranslator implements Reportable, NodePropertyTranslator
             SparkSubmitCommandBuilder sparkSubmitCommandBuilder = new SparkSubmitCommandBuilder(args);
             return sparkSubmitCommandBuilder;
         } catch (Exception e) {
-            LOGGER.warn("code: {}, exception: ", node.getCode(), e);
+            LOGGER.warn("code: {}, exception: ", code, e);
         }
         return null;
     }
@@ -237,8 +237,7 @@ public class SparkSubmitTranslator implements Reportable, NodePropertyTranslator
 
         String filePath = ResourceUtils.getPlaceholderFile(fileName);
         try {
-            ClassPathResource classPathResource = new ClassPathResource(filePath);
-            resource.setLocalPath(classPathResource.getFile().getAbsolutePath());
+            resource.setLocalPath(new File(filePath).getAbsolutePath());
             resource.setWorkflowRef(workflow);
             workflow.getResources().add(resource);
         } catch (Exception e) {

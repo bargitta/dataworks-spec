@@ -31,7 +31,6 @@ import java.util.function.Function;
 
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwResource;
-import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwWorkflow;
 import com.aliyun.dataworks.migrationx.transformer.core.checkpoint.CheckPoint;
 import com.aliyun.migrationx.common.context.TransformerContext;
 
@@ -42,7 +41,7 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
+public class LocalFileCheckPoint<SPEC> implements CheckPoint<BufferedFileWriter, SPEC> {
     /**
      * check point file suffix
      */
@@ -51,7 +50,7 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
      * need append line to file
      */
     private static final boolean FILE_APPEND = true;
-    private final static TypeReference<List<DwWorkflow>> REF = new TypeReference<List<DwWorkflow>>() {};
+    private final TypeReference<List<SPEC>> REF = new TypeReference<List<SPEC>>() {};
     private static final PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
             .allowIfSubType(DwNode.class)
             .allowIfSubType(DwResource.class)
@@ -60,7 +59,7 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
     private final ObjectMapper objectMapper = new ObjectMapper().setPolymorphicTypeValidator(ptv);
 
     @Override
-    public List<DwWorkflow> doWithCheckpoint(Function<BufferedFileWriter, List<DwWorkflow>> checkpointFunc, String projectName) {
+    public List<SPEC> doWithCheckpoint(Function<BufferedFileWriter, List<SPEC>> checkpointFunc, String projectName) {
         File checkpoint = TransformerContext.getContext().getCheckpoint();
         if (checkpoint == null) {
             log.info("checkpoint is null, skip");
@@ -71,7 +70,7 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
         return doWithCheckpoint(checkpointFunc, target);
     }
 
-    public List<DwWorkflow> doWithCheckpoint(Function<BufferedFileWriter, List<DwWorkflow>> checkpointFunc, File target) {
+    public List<SPEC> doWithCheckpoint(Function<BufferedFileWriter, List<SPEC>> checkpointFunc, File target) {
         try (FileOutputStream out = new FileOutputStream(target, FILE_APPEND)) {
             try (OutputStreamWriter streamWriter = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
                 try (BufferedFileWriter writer = new BufferedFileWriter(streamWriter)) {
@@ -84,11 +83,11 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
     }
 
     @Override
-    public void doCheckpoint(BufferedFileWriter writer, List<DwWorkflow> workflows, String processName, String taskName) {
+    public void doCheckpoint(BufferedFileWriter writer, List<SPEC> workflows, String processName, String taskName) {
         if (writer == null) {
             return;
         }
-        Map<String, List<DwWorkflow>> dataMap = new HashMap<>();
+        Map<String, List<SPEC>> dataMap = new HashMap<>();
         dataMap.put(taskName, workflows);
         String data = toJson(workflows);
         try {
@@ -101,9 +100,9 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
     }
 
     @Override
-    public Map<String, List<DwWorkflow>> loadFromCheckPoint(String projectName, String processName) {
+    public Map<String, List<SPEC>> loadFromCheckPoint(String projectName, String processName) {
         File dir = TransformerContext.getContext().getLoad();
-        Map<String, List<DwWorkflow>> workflowMap = null;
+        Map<String, List<SPEC>> workflowMap = null;
         if (dir != null && dir.exists() && dir.isDirectory()) {
             for (File checkFile : dir.listFiles()) {
                 if (checkFile.getName().endsWith(projectName + SUFFIX)) {
@@ -121,11 +120,11 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
         void consume(String processName, String taskName, String line);
     }
 
-    private Map<String, List<DwWorkflow>> loadFromCheckpoint(File checkpointFile, String qProcessName) {
-        final Map<String, List<DwWorkflow>> workflowMap = new HashMap<>();
+    private Map<String, List<SPEC>> loadFromCheckpoint(File checkpointFile, String qProcessName) {
+        final Map<String, List<SPEC>> workflowMap = new HashMap<>();
         final LineConsumer lineConsumer = (processName, taskName, line) -> {
             if (qProcessName.equals(processName)) {
-                List<DwWorkflow> taskMap = parseJson(line);
+                List<SPEC> taskMap = parseJson(line);
                 workflowMap.putIfAbsent(taskName, taskMap);
             }
         };
@@ -172,9 +171,9 @@ public class LocalFileCheckPoint implements CheckPoint<BufferedFileWriter> {
         }
     }
 
-    private List<DwWorkflow> parseJson(String json) {
+    private List<SPEC> parseJson(String json) {
         try {
-            List<DwWorkflow> lists = objectMapper.readerFor(REF).readValue(json);
+            List<SPEC> lists = objectMapper.readerFor(REF).readValue(json);
             return lists;
         } catch (Exception e) {
             throw new RuntimeException(e);

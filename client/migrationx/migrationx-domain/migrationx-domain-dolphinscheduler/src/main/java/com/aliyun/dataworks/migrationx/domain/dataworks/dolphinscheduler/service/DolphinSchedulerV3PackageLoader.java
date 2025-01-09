@@ -21,7 +21,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -40,7 +39,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -106,9 +104,8 @@ public class DolphinSchedulerV3PackageLoader extends DolphinSchedulerPackageLoad
                 .map(files -> files.stream().map(this::readProcessMetaJson)
                         .filter(CollectionUtils::isNotEmpty)
                         .flatMap(List::stream)
-                        .filter(Objects::nonNull)
                         .collect(Collectors.toList()))
-                .orElse(ListUtils.emptyIfNull(null));
+                .orElse(Collections.emptyList());
     }
 
     private List<DagData> readProcessMetaJson(File jsonFile) {

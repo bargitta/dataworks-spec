@@ -27,7 +27,7 @@
         <file>${LOG_FILE}</file>
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
-            <charset>utf8</charset>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
@@ -64,7 +64,7 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
-            <charset>utf8</charset>
+            <charset>UTF-8</charset>
         </encoder>
     </appender>
 
@@ -77,6 +77,7 @@
     </logger>
 
     <root level="INFO">
-        <appender-ref ref="${APPENDER_REF}"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>

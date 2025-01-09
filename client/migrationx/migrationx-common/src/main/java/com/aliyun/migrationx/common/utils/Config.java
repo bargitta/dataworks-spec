@@ -39,4 +39,9 @@ public class Config {
      * '*' for all
      */
     private List<String> filterTasks = new ArrayList<>();
+
+    /**
+     * workflow base path
+     */
+    private String basePath;
 }

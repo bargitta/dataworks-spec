@@ -50,7 +50,9 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.DmMajorVer
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.NodeUseType;
 import com.aliyun.dataworks.migrationx.transformer.core.common.Constants;
 import com.aliyun.dataworks.migrationx.transformer.core.utils.ZipUtils;
+import com.aliyun.migrationx.common.utils.BeanUtils;
 import com.aliyun.migrationx.common.utils.GsonUtils;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Joiner;
@@ -63,7 +65,6 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 
 /**
  * V1 Migration工具的导出包转换器，转换为dataworks-model

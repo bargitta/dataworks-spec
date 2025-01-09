@@ -27,6 +27,7 @@ import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.Node;
 import com.aliyun.dataworks.migrationx.domain.dataworks.utils.NodeUtils;
 import com.aliyun.migrationx.common.utils.GsonUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,17 @@ public class EmrCodeUtils {
             }
         } catch (Exception e) {
             LOGGER.error("convert to EmrCode failed code: {}, exception: ", node.getCode(), e);
+        }
+        return null;
+    }
+
+    public static EmrCode asEmrCode(String type, String code) {
+        try {
+            if (NodeUtils.isEmrNode(type)) {
+                return GsonUtils.fromJsonString(code, EmrCode.class);
+            }
+        } catch (Exception e) {
+            LOGGER.error("convert to EmrCode failed code: {}, exception: ", code, e);
         }
         return null;
     }
@@ -87,6 +99,47 @@ public class EmrCodeUtils {
                 return GsonUtils.toJsonString(emrCode);
             default:
                 return node.getCode();
+        }
+    }
+
+    public static String toEmrCode(CodeProgramType type, String taskName, String code) {
+        EmrCode emrCode = new EmrCode();
+        emrCode.setName(taskName);
+        emrCode.setDescription("DataWorks Migration");
+        EmrLauncher launcher = new EmrLauncher();
+        launcher.setAllocationSpec(getDefaultAllocationSpec());
+        emrCode.setLauncher(launcher);
+        EmrProperty properties = new EmrProperty();
+        properties.setArguments(Arrays.asList(code));
+        properties.setTags(Arrays.asList(taskName));
+        emrCode.setProperties(properties);
+        switch (type) {
+            case EMR_HIVE:
+                emrCode.setType(EmrJobType.HIVE_SQL);
+                return GsonUtils.toJsonString(emrCode);
+            case EMR_SHELL:
+                emrCode.setType(EmrJobType.SHELL);
+                return GsonUtils.toJsonString(emrCode);
+            case EMR_IMPALA:
+                emrCode.setType(EmrJobType.IMPALA_SQL);
+                return GsonUtils.toJsonString(emrCode);
+            case EMR_MR:
+                emrCode.setType(EmrJobType.MR);
+                return GsonUtils.toJsonString(emrCode);
+            case EMR_PRESTO:
+                emrCode.setType(EmrJobType.PRESTO_SQL);
+                return GsonUtils.toJsonString(emrCode);
+            case EMR_SPARK:
+                emrCode.setType(EmrJobType.SPARK);
+                return GsonUtils.toJsonString(emrCode);
+            case EMR_SPARK_SHELL:
+                emrCode.setType(EmrJobType.SPARK_SHELL);
+                return GsonUtils.toJsonString(emrCode);
+            case EMR_SPARK_SQL:
+                emrCode.setType(EmrJobType.SPARK_SQL);
+                return GsonUtils.toJsonString(emrCode);
+            default:
+                return code;
         }
     }
 

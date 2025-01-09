@@ -44,6 +44,7 @@ import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.AbstractB
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.WorkflowConverter;
 import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
+import com.aliyun.migrationx.common.utils.BeanUtils;
 import com.aliyun.migrationx.common.utils.FileNameUtils;
 import com.aliyun.migrationx.common.utils.GsonUtils;
 
@@ -56,7 +57,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 
 /**
  * Implementation of parsing airflow dag python code to workflow definition

@@ -16,15 +16,14 @@ import com.aliyun.dataworks_public20240518.models.ImportWorkflowDefinitionRespon
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataWorksMigrationSpecificationImportWriterTest {
@@ -34,11 +33,11 @@ public class DataWorksMigrationSpecificationImportWriterTest {
         URL url = Thread.currentThread().getContextClassLoader().getResource("airflow2/workflows/");
         DataWorksMigrationSpecificationImportWriter writer = new DataWorksMigrationSpecificationImportWriter();
         String[] args = new String[]{
-                "-i", "xxx",  //accessId
-                "-k", "xxx",  //accessKey
-                "-r", "cn-shenzhen",   //regionId
-                "-p", "-1",   //projectId
-                "-f", url.getPath()
+                "-i", "xx",  //accessId
+                "-k", "xx",  //accessKey
+                "-r", "cn-shanghai",   //regionId
+                "-p", "483776",   //projectId
+                "-f", "../../../temp/specs_target"
         };
         try {
             writer.run(args);

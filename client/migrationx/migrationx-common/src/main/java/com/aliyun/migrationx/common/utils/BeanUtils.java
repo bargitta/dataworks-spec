@@ -8,8 +8,13 @@
 
 package com.aliyun.migrationx.common.utils;
 
-import org.dozer.DozerBeanMapper;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.List;
 
+import org.apache.commons.beanutils.PropertyUtils;
+import org.dozer.DozerBeanMapper;
 /**
  * Desc:
  *
@@ -32,5 +37,46 @@ public class BeanUtils {
 
     private BeanUtils() {
 
+    }
+
+    public static void copyProperties(Object src, Object dest) {
+        try {
+            org.apache.commons.beanutils.BeanUtils.copyProperties(dest, src);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void copyProperties(Object src, Object dest, String... ignoreProperties) {
+        try {
+            copyPropertiesWithIgnore(dest, src, ignoreProperties);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void copyPropertiesWithIgnore(Object dest, Object orig, String... ignoreProperties)
+            throws IllegalAccessException, InvocationTargetException {
+        List<String> ignoreList = (ignoreProperties != null) ? Arrays.asList(ignoreProperties) : null;
+
+        PropertyDescriptor[] origDescriptors = PropertyUtils.getPropertyDescriptors(orig);
+        for (PropertyDescriptor origDescriptor : origDescriptors) {
+            String name = origDescriptor.getName();
+            if ("class".equals(name)) {
+                continue; // Ignore the "class" property
+            }
+            if (ignoreList != null && ignoreList.contains(name)) {
+                continue; // Ignore specified properties
+            }
+
+            if (PropertyUtils.isReadable(orig, name) && PropertyUtils.isWriteable(dest, name)) {
+                try {
+                    Object value = PropertyUtils.getSimpleProperty(orig, name);
+                    org.apache.commons.beanutils.BeanUtils.setProperty(dest, name, value);
+                } catch (NoSuchMethodException e) {
+                    // Ignore if the setter method does not exist in the destination bean
+                }
+            }
+        }
     }
 }
