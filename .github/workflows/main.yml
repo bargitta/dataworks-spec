@@ -35,7 +35,9 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: test-results
-        path: spec/target/surefire-reports/
+        path: |
+          spec/target/surefire-reports/
+          client/**/target/surefire-reports
     - name: Publish Test Results
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
