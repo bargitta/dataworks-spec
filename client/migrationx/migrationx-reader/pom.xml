@@ -20,7 +20,7 @@
     <parent>
         <artifactId>migrationx</artifactId>
         <groupId>com.aliyun.dataworks</groupId>
-        <version>1.1.9-8</version>
+        <version>1.1.9-10</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -35,12 +35,26 @@
         </dependency>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
+            <artifactId>migrationx-domain-dataworks</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.aliyun.dataworks</groupId>
             <artifactId>migrationx-domain-aliyunemr</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
             <artifactId>migrationx-domain-airflow</artifactId>
+            <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.aliyun.dataworks</groupId>
+            <artifactId>migrationx-domain-dataworks</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
             <artifactId>migrationx-domain-dolphinscheduler</artifactId>

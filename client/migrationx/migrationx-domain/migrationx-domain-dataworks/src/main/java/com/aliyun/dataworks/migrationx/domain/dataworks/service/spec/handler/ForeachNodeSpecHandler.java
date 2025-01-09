@@ -51,13 +51,23 @@ public class ForeachNodeSpecHandler extends BasicNodeSpecHandler {
         Preconditions.checkNotNull(orcNode, "node is null");
         SpecNode specNode = super.handle(orcNode);
         if (support(orcNode)) {
-            specNode.setForeach(buildForEach(orcNode, specNode, context));
+            List<DwNodeEntity> innerNodes = getInnerNodes(orcNode);
+            specNode.setForeach(buildForEach(orcNode, specNode, innerNodes, context));
         }
         return specNode;
     }
 
-    private SpecForEach buildForEach(DwNodeEntity orcNode, SpecNode specNode, SpecHandlerContext context) {
-        List<DwNodeEntity> innerNodes = getInnerNodes(orcNode);
+    @Override
+    public SpecNode handle(DwNodeEntity parentNode, List<DwNodeEntity> innerNodes) {
+        Preconditions.checkNotNull(parentNode, "node is null");
+        SpecNode specNode = super.handle(parentNode);
+        if (support(parentNode)) {
+            specNode.setForeach(buildForEach(parentNode, specNode, innerNodes, context));
+        }
+        return specNode;
+    }
+
+    private SpecForEach buildForEach(DwNodeEntity orcNode, SpecNode specNode, List<DwNodeEntity> innerNodes, SpecHandlerContext context) {
         SpecForEach specForEach = new SpecForEach();
         specForEach.setNodes(innerNodes.stream()
             .map(n -> getSpecAdapter().getHandler(n, context.getLocale()).handle(n))

@@ -15,6 +15,8 @@
 
 package com.aliyun.dataworks.common.spec.adapter;
 
+import java.util.List;
+
 import com.aliyun.dataworks.common.spec.domain.SpecEntity;
 
 /**
@@ -36,6 +38,17 @@ public interface SpecEntityHandler<E, T extends SpecEntity> {
      * @return Spec Entity
      */
     T handle(E entity);
+
+    /**
+     * For container node
+     *
+     * @param parentNode parent node
+     * @param innerNodes inner nodes
+     * @return parent node
+     */
+    default T handle(E parentNode, List<E> innerNodes) {
+        return handle(parentNode);
+    }
 
     /**
      * to judge if the entity is supported

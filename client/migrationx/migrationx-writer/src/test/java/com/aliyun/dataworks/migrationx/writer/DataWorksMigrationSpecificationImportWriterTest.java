@@ -12,7 +12,6 @@ import com.aliyun.dataworks_public20240518.models.GetJobStatusResponseBody.GetJo
 import com.aliyun.dataworks_public20240518.models.ImportWorkflowDefinitionResponse;
 import com.aliyun.dataworks_public20240518.models.ImportWorkflowDefinitionResponseBody;
 import com.aliyun.dataworks_public20240518.models.ImportWorkflowDefinitionResponseBody.ImportWorkflowDefinitionResponseBodyAsyncJob;
-
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,12 +31,12 @@ public class DataWorksMigrationSpecificationImportWriterTest {
     public void runApp() {
         URL url = Thread.currentThread().getContextClassLoader().getResource("airflow2/workflows/");
         DataWorksMigrationSpecificationImportWriter writer = new DataWorksMigrationSpecificationImportWriter();
-        String[] args = new String[]{
-                "-i", "xx",  //accessId
-                "-k", "xx",  //accessKey
-                "-r", "cn-shanghai",   //regionId
-                "-p", "483776",   //projectId
-                "-f", "../../../temp/specs_target"
+        String[] args = new String[] {
+            "-i", "xx",  //accessId
+            "-k", "xx",  //accessKey
+            "-r", "cn-shanghai",   //regionId
+            "-p", "483776",   //projectId
+            "-f", "."
         };
         try {
             writer.run(args);

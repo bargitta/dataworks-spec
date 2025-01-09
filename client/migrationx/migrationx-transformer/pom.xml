@@ -20,7 +20,7 @@
     <parent>
         <artifactId>migrationx</artifactId>
         <groupId>com.aliyun.dataworks</groupId>
-        <version>1.1.9-8</version>
+        <version>1.1.9-10</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -32,11 +32,7 @@
     <dependencies>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-adf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-datago</artifactId>
+            <artifactId>migrationx-common</artifactId>
         </dependency>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
@@ -44,47 +40,7 @@
         </dependency>
         <dependency>
             <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-caiyunjian</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-azkaban</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-reload4j</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-aliyunemr</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-airflow</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-oozie</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-simple</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-domain-dolphinscheduler</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.aliyun.dataworks</groupId>
-            <artifactId>migrationx-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
+            <artifactId>dw-common-spec</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -144,6 +100,127 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>all</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-adf</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-datago</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-dataworks</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-caiyunjian</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-azkaban</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>slf4j-reload4j</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-aliyunemr</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-airflow</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-oozie</artifactId>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>slf4j-simple</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-dolphinscheduler</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>dolphin</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-adf</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-datago</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-dataworks</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-caiyunjian</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-azkaban</artifactId>
+                    <scope>provided</scope>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>slf4j-reload4j</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-aliyunemr</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-airflow</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-oozie</artifactId>
+                    <scope>provided</scope>
+                    <exclusions>
+                        <exclusion>
+                            <artifactId>slf4j-simple</artifactId>
+                            <groupId>org.slf4j</groupId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.aliyun.dataworks</groupId>
+                    <artifactId>migrationx-domain-dolphinscheduler</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>
