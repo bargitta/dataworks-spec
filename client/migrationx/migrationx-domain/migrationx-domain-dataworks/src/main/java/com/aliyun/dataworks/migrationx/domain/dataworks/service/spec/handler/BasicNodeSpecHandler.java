@@ -109,7 +109,6 @@ public class BasicNodeSpecHandler extends AbstractEntityHandler<DwNodeEntity, Sp
             .orElse(false);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public SpecNode handle(DwNodeEntity dmNode) {
         Preconditions.checkNotNull(dmNode, "dmNode is null");

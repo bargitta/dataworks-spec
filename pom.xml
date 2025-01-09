@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.aliyun.dataworks</groupId>
     <artifactId>dataworks-tool</artifactId>
-    <version>1.1.9-8</version>
+    <version>1.1.9-10</version>
     <packaging>pom</packaging>
     <name>dataworks-tool</name>
     <modules>
@@ -46,33 +46,7 @@
         <logback.version>1.2.11</logback.version>
         <xml.apis.version>1.4.01</xml.apis.version>
         <dom4j.version>1.6.1</dom4j.version>
-        <powermock.version>2.0.9</powermock.version>
         <druid.version>1.2.4</druid.version>
-        <powermock.jdk11.argLine>
-            --add-opens java.base/java.text=ALL-UNNAMED
-            --add-opens java.base/java.lang=ALL-UNNAMED
-            --add-modules java.xml
-            --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-            --add-exports java.base/sun.nio.ch=ALL-UNNAMED
-            --add-exports java.base/sun.nio.cs=ALL-UNNAMED
-            --add-exports java.base/sun.security.ssl=ALL-UNNAMED
-            --add-exports java.base/sun.security.util=ALL-UNNAMED
-            --add-exports java.base/sun.security.provider=ALL-UNNAMED
-            --add-exports java.base/sun.security.action=ALL-UNNAMED
-            --add-exports java.base/sun.security.jca=ALL-UNNAMED
-            --add-exports java.base/sun.security.x509=ALL-UNNAMED
-            --add-exports java.base/sun.security.pkcs=ALL-UNNAMED
-            --add-exports java.base/sun.security.rsa=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools.jarsigner=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools.policytool=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools.policytool=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools.keytool=ALL-UNNAMED
-            --add-exports java.base/sun.security.tools.policytool=ALL-UNNAMED
-            --add-exports java.xml/jdk.xml.internal=ALL-UNNAMED
-        </powermock.jdk11.argLine>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -93,6 +67,11 @@
                 <version>3.3.10</version>
             </dependency>
             <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>dataworks_public20240518</artifactId>
+                <version>2.0.0</version>
+            </dependency>
+            <dependency>
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
                 <version>2.2</version>
@@ -102,12 +81,6 @@
                 <artifactId>reflections</artifactId>
                 <version>0.10.2</version>
             </dependency>
-            <dependency>
-                <groupId>com.aliyun.oss</groupId>
-                <artifactId>aliyun-sdk-oss</artifactId>
-                <version>3.11.0</version>
-            </dependency>
-
             <dependency>
                 <artifactId>json-smart</artifactId>
                 <groupId>net.minidev</groupId>
@@ -153,18 +126,6 @@
                 <artifactId>commons-collections4</artifactId>
                 <version>4.3</version>
             </dependency>
-            <!-- spring dependencies -->
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>5.3.35</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>5.3.35</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.hibernate.validator</groupId>
                 <artifactId>hibernate-validator</artifactId>
@@ -257,24 +218,6 @@
             </dependency>
             <!--Test start-->
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4-rule-agent</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-inline</artifactId>
                 <version>3.9.0</version>
@@ -335,17 +278,11 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.2.5</version>
-                    <configuration>
-                        <argLine>${powermock.jdk11.argLine}</argLine>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>3.0.0-M5</version>
-                    <configuration>
-                        <argLine>${powermock.jdk11.argLine}</argLine>
-                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

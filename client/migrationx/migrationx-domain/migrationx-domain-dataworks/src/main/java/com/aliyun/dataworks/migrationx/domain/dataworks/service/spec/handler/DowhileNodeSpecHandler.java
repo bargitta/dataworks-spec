@@ -49,13 +49,24 @@ public class DowhileNodeSpecHandler extends BasicNodeSpecHandler {
         SpecNode specNode = super.handle(dmNodeBo);
 
         if (support(dmNodeBo)) {
-            specNode.setDoWhile(buildDoWhile(dmNodeBo, context));
+            List<DwNodeEntity> innerNodes = getInnerNodes(dmNodeBo);
+            specNode.setDoWhile(buildDoWhile(dmNodeBo, innerNodes, context));
         }
         return specNode;
     }
 
-    private SpecDoWhile buildDoWhile(DwNodeEntity orcNode, SpecHandlerContext context) {
-        List<DwNodeEntity> innerNodes = getInnerNodes(orcNode);
+    @Override
+    public SpecNode handle(DwNodeEntity parentNode, List<DwNodeEntity> innerNodes) {
+        Preconditions.checkNotNull(parentNode, "node is null");
+        SpecNode specNode = super.handle(parentNode);
+
+        if (support(parentNode)) {
+            specNode.setDoWhile(buildDoWhile(parentNode, innerNodes, context));
+        }
+        return specNode;
+    }
+
+    private SpecDoWhile buildDoWhile(DwNodeEntity orcNode, List<DwNodeEntity> innerNodes, SpecHandlerContext context) {
         SpecDoWhile specDoWhile = new SpecDoWhile();
         specDoWhile.setMaxIterations(orcNode.getLoopCount());
         specDoWhile.setNodes(innerNodes.stream()

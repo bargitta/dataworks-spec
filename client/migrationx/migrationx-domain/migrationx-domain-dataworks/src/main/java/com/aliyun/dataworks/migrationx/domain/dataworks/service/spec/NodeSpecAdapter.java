@@ -127,10 +127,19 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
             } else {
                 BasicNodeSpecHandler nodeSpecHandler = (BasicNodeSpecHandler)getHandler(dwNode, context.getLocale());
                 nodeSpecHandler.setContext(context);
-                dataWorksWorkflowSpec.setFlow(toFlow(nodeSpecHandler, dwNode, context));
-                List<SpecNode> nodes = new ArrayList<>();
-                Optional.ofNullable(nodeSpecHandler.handle(dwNode)).ifPresent(nodes::add);
-                dataWorksWorkflowSpec.setNodes(nodes);
+                if (dwNode.getParentNode() == null) {
+                    dataWorksWorkflowSpec.setFlow(toFlow(nodeSpecHandler, dwNode, context));
+                    List<SpecNode> nodes = new ArrayList<>();
+                    Optional.ofNullable(nodeSpecHandler.handle(dwNode)).ifPresent(nodes::add);
+                    dataWorksWorkflowSpec.setNodes(nodes);
+                } else {
+                    // for inner node
+                    BasicNodeSpecHandler parentNodeHandler = (BasicNodeSpecHandler)getHandler(dwNode.getParentNode(), context.getLocale());
+                    dataWorksWorkflowSpec.setFlow(toFlow(parentNodeHandler, dwNode.getParentNode(), context));
+                    List<SpecNode> nodes = new ArrayList<>();
+                    Optional.ofNullable(parentNodeHandler.handle(dwNode.getParentNode(), Collections.singletonList(dwNode))).ifPresent(nodes::add);
+                    dataWorksWorkflowSpec.setNodes(nodes);
+                }
             }
         });
         return spec;

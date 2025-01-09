@@ -436,6 +436,15 @@ public interface DwNodeEntity {
     }
 
     /**
+     * get parent node info
+     *
+     * @return parent node
+     */
+    default DwNodeEntity getParentNode() {
+        return null;
+    }
+
+    /**
      * get cu
      *
      * @return cu

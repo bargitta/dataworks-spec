@@ -51,9 +51,15 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 public class DwNodeEntityAdapter implements DwNodeEntity {
     private final DwNode dwNode;
+    private DwNode dwParentNode;
 
     public DwNodeEntityAdapter(DwNode dwNode) {
         this.dwNode = dwNode;
+    }
+
+    public DwNodeEntityAdapter(DwNode dwNode, DwNode dwParentNode) {
+        this.dwNode = dwNode;
+        this.dwParentNode = dwParentNode;
     }
 
     @Override
@@ -373,6 +379,11 @@ public class DwNodeEntityAdapter implements DwNodeEntity {
     @Override
     public Long getParentId() {
         return null;
+    }
+
+    @Override
+    public DwNodeEntity getParentNode() {
+        return Optional.ofNullable(dwParentNode).map(DwNodeEntityAdapter::new).orElse(null);
     }
 
     @Override

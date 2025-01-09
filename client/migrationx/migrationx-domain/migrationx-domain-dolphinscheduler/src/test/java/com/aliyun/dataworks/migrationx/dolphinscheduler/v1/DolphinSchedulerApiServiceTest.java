@@ -19,7 +19,6 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.Dolp
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.QueryProcessDefinitionByPaginateRequest;
 import com.aliyun.migrationx.common.http.HttpClientUtil;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockedConstruction;
@@ -34,7 +33,6 @@ import static org.mockito.Mockito.when;
  * @date 2022/10/20
  */
 @RunWith(MockitoJUnitRunner.class)
-@Ignore
 public class DolphinSchedulerApiServiceTest {
 
     @Test
