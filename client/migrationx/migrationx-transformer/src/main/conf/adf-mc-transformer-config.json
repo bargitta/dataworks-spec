@@ -9,7 +9,17 @@
       "DatabricksNotebook": "ODPS_SQL"
     },
     "unknownNodeType": "DIDE_SHELL",
-    "notebookLocalPath" :  {
+    "globalVariables": [
+      {
+        "name": "time",
+        "value": "${workspace.time}"
+      },
+      {
+        "name": "env",
+        "value": "${workspace.env}"
+      }
+    ],
+    "notebookLocalPath": {
       "removePrefix": "/Repos/NGBI/PRD/",
       "addPrefix": "/Users/xichen/Documents/github_repos/sqlfiles/"
     }

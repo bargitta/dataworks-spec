@@ -2,6 +2,7 @@ package com.aliyun.dataworks.migrationx.domain.adf;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -25,5 +26,11 @@ public class AdfConf {
          * then removePrefix:  /Repos/NGBI/ and addPrefix:  /Users/abc/repo/
          */
         Map<String, String> notebookLocalPath;
+        List<Variable> globalVariables;
+
+        public static class Variable {
+            public String name;
+            public String value;
+        }
     }
 }
