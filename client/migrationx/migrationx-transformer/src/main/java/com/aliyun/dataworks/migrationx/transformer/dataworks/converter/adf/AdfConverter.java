@@ -17,9 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -123,7 +123,7 @@ public class AdfConverter {
                     node.setRerunMode(NodeRerunModeType.ALL_DENIED);
                 }
                 node.setRerunTimes(activity.getPolicy().getRetry());
-                node.setTimeout(toTimeoutInHours(activity.getPolicy().getTimeout()));
+                node.setTimeout(Integer.valueOf(toTimeoutInHours(activity.getPolicy().getTimeout())));
             }
             node.setOutputs(getOutput(node.getId(), node.getName()));
             node.setInstanceMode(NodeInstanceModeType.T_PLUS_1);
@@ -174,9 +174,24 @@ public class AdfConverter {
         SpecScriptRuntime runtime = new SpecScriptRuntime();
         CodeProgramType command = getCommand(activity.getType());
         runtime.setCommand(command.getName());
-        runtime.setCommandTypeId(command.getCode());
+        runtime.setCommandTypeId(Integer.valueOf(command.getCode()));
         script.setRuntime(runtime);
+        script.setParameters(getGlobalVariables(this.adfConf.getSettings().getGlobalVariables()));
         return script;
+    }
+
+    private List<SpecVariable> getGlobalVariables(List<AdfConf.AdfSetting.Variable> globalVariables) {
+        if (null == globalVariables || globalVariables.isEmpty()) {
+            return null;
+        }
+        List<SpecVariable> variables = new ArrayList<>();
+        globalVariables.forEach(t -> {
+            SpecVariable var = new SpecVariable();
+            var.setValue(t.value);
+            var.setName(t.name);
+            variables.add(var);
+        });
+        return variables;
     }
 
     private String getNodeContent(Pipeline.PipelineProperty.Activity activity) {

@@ -23,6 +23,18 @@ import java.util.List;
 import java.util.Map;
 
 public class AdfConverterTest {
+    @Test
+    public void testAdfConf() throws IOException {
+        AdfConf adfConf = prepareAdfConf("src/test/resources/json/adf/conf.json");
+        List<AdfConf.AdfSetting.Variable> vars = adfConf.getSettings().getGlobalVariables();
+        Assert.assertEquals(2, vars.size());
+        AdfConf.AdfSetting.Variable var = vars.get(0);
+        Assert.assertEquals("time", var.name);
+        Assert.assertEquals("${workspace.time}", var.value);
+        var = vars.get(1);
+        Assert.assertEquals("env", var.name);
+        Assert.assertEquals("${workspace.env}", var.value);
+    }
 
     @Test
     public void testNotebookPathConversionWithHappyPath() {
@@ -81,6 +93,7 @@ public class AdfConverterTest {
         Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh    DDI    After RetailBI Ready"));
         Assert.assertEquals("Refresh_DDI_After_RetailBI_Ready", AdfConverter.getValidName("Refresh DDI After RetailBI Ready"));
     }
+
     private AdfConf prepareAdfConf(String path) throws IOException {
         String fileContent = FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
         return JSONUtils.parseObject(fileContent, AdfConf.class);
