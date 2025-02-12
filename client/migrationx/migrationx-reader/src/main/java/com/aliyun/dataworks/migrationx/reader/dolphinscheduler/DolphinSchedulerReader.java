@@ -42,6 +42,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.Resp
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DolphinSchedulerApiV2Service;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.DolphinschedulerApiV3Service;
+import com.aliyun.migrationx.common.utils.Config;
 import com.aliyun.migrationx.common.utils.GsonUtils;
 import com.aliyun.migrationx.common.utils.JSONUtils;
 import com.aliyun.migrationx.common.utils.PaginateUtils;
@@ -51,6 +52,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -79,6 +81,8 @@ public class DolphinSchedulerReader {
     private static final String PROJECTS = "projects";
     private static final String PROJECTS_JSON = "projects.json";
 
+    private static final int PAGE_SIZE = 1000;
+
     private final String version;
     private List<String> projects;
     private List<Long> codes;
@@ -88,8 +92,8 @@ public class DolphinSchedulerReader {
     private Boolean skipResources = true;
     private final DolphinSchedulerApi dolphinSchedulerApiService;
 
-    public DolphinSchedulerReader(String endpoint, String token, String version, List<String> projects, List<Long> codes,
-            File exportFile) {
+    public DolphinSchedulerReader(String endpoint, String token, String version, List<String> projects,
+            List<Long> codes, File exportFile) {
         this.version = version;
         this.projects = projects;
         this.codes = codes;
@@ -103,6 +107,8 @@ public class DolphinSchedulerReader {
         } else {
             throw new RuntimeException("unsupported dolphinscheduler version: " + version);
         }
+        Config.init();
+        Config.get().setVersion(version);
     }
 
     public File export() throws Exception {
@@ -266,7 +272,11 @@ public class DolphinSchedulerReader {
         }
         List<JsonElement> resources = new ArrayList<>();
         Arrays.asList("FILE", "UDF").forEach(type -> {
-            visitResourceByFolder(type, null, -1, resourceDir, resources);
+            if (isVersion3()) {
+                visitResourceByPage(type, null, -1, resourceDir, resources);
+            } else {
+                visitResource(type, null, -1, resourceDir, resources);
+            }
         });
 
         try {
@@ -279,13 +289,13 @@ public class DolphinSchedulerReader {
         }
     }
 
-    private void visitResourceByFolder(String type, String fullName, int dirId, File resourceDir, List<JsonElement> resources) {
+    private void visitResourceByPage(String type, String fullName, int dirId, File resourceDir, List<JsonElement> resources) {
         try {
             int pageNum = 1;
-            int pageSize = 100;
+            int pageSize = PAGE_SIZE;
             while (true) {
                 List<JsonElement> data = getResource(type, fullName, dirId, pageNum, pageSize);
-                if (data == null) {
+                if (CollectionUtils.isEmpty(data)) {
                     break;
                 }
                 resources.addAll(data);
@@ -300,7 +310,7 @@ public class DolphinSchedulerReader {
                         }
                         File visitDir = new File(currentDir);
                         //todo lower version has no fullName
-                        visitResourceByFolder(type, component.getFullName(), component.getId(), visitDir, resources);
+                        visitResourceByPage(type, component.getFullName(), component.getId(), visitDir, resources);
                     } else {
                         if (!BooleanUtils.isTrue(skipResources)) {
                             if (!resourceDir.exists()) {
@@ -311,13 +321,58 @@ public class DolphinSchedulerReader {
                     }
                 }
 
-                if (data.size() < pageSize) {
+                //fetch by page(version 3) or not by page(version 2)
+                //todo
+                if (data.size() != pageSize) {
                     break;
                 }
                 pageNum = pageNum + 1;
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void visitResource(String type, String fullName, int dirId, File resourceDir, List<JsonElement> resources) {
+        try {
+            List<JsonElement> data = getResource(type, fullName, dirId, 1, 1000);
+            visitResource(data, resources);
+            downloadResource(resources, resourceDir);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void visitResource(List<JsonElement> data, List<JsonElement> resources) {
+        for (JsonElement jsonElement : data) {
+            if (jsonElement.isJsonObject()) {
+                JsonObject obj = jsonElement.getAsJsonObject();
+                if (obj.has("children") && obj.get("children").isJsonArray()) {
+                    JsonArray array = obj.get("children").getAsJsonArray();
+                    List<JsonElement> children = array.asList();
+                    visitResource(children, resources);
+                    jsonElement.getAsJsonObject().remove("children");
+                }
+                resources.add(jsonElement);
+            }
+        }
+    }
+
+    private void downloadResource(List<JsonElement> resources, File resourceDir) {
+        List<ResourceComponent> resourceComponents = GsonUtils.fromJsonString(GsonUtils.toJsonString(resources),
+                new com.google.common.reflect.TypeToken<List<ResourceComponent>>() {}.getType());
+        for (ResourceComponent component : resourceComponents) {
+            if (!component.isDirctory() && !component.isDirectory()) {
+                String dir = resourceDir.getAbsolutePath();
+                if (!component.getFullName().equals(component.getName())) {
+                    dir = dir + File.separator + component.getFullName().replace(component.getName(), "");
+                }
+                File visitDir = new File(dir);
+                if (!visitDir.exists()) {
+                    visitDir.mkdirs();
+                }
+                downloadResource(component, dir);
+            }
         }
     }
 

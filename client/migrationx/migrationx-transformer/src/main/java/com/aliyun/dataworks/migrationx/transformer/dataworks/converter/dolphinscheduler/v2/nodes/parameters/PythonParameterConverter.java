@@ -22,13 +22,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 import com.aliyun.dataworks.common.spec.domain.dw.types.CalcEngineType;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.common.spec.domain.dw.types.LabelType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DagData;
-import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DolphinSchedulerV2Context;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.Project;
@@ -46,8 +45,6 @@ import com.aliyun.dataworks.migrationx.transformer.dataworks.transformer.DataWor
 
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -73,37 +70,19 @@ public class PythonParameterConverter extends AbstractParameterConverter<PythonP
         if (Boolean.parseBoolean(usingCmd)) {
             //python -c 'some python code block'
             String cmd = "python -c \"" + parameter.getRawScript() + "\"";
+            cmd = replaceCode(cmd, dwNode);
             dwNode.setCode(cmd);
         } else if (CodeProgramType.ODPS_PYTHON.equals(CodeProgramType.of(type))
                 || CodeProgramType.PYODPS.equals(CodeProgramType.of(type))
                 || CodeProgramType.PYODPS3.equals(CodeProgramType.of(type))) {
-            dwNode.setCode(parameter.getRawScript());
+            String code = parameter.getRawScript();
+            code = replaceCode(code, dwNode);
+            dwNode.setCode(code);
         } else {
             DwResource pyRes = new DwResource();
             pyRes.setName(Joiner.on("_").join(processMeta.getName(), taskDefinition.getName()) + ".py");
             pyRes.setWorkflowRef(dwWorkflow);
             dwWorkflow.getResources().add(pyRes);
-            DolphinSchedulerV2Context context = DolphinSchedulerV2Context.getContext();
-            List<String> resources = ListUtils.emptyIfNull(parameter.getResourceList()).stream()
-                    .map(resource -> {
-                        CollectionUtils.emptyIfNull(context.getResources())
-                                .stream()
-                                .filter(r -> r.getId() == resource.getId())
-                                .findAny()
-                                .ifPresent(
-                                        r -> resource.setName(r.getName())
-                                );
-                        return resource.getName();
-                    }).filter(name -> StringUtils.isNotEmpty(name))
-                    .distinct()
-                    .collect(Collectors.toList());
-
-            resources.add(pyRes.getName());
-            dwNode.setCode(Joiner.on("\n").join(
-                    DataStudioCodeUtils.addResourceReference(CodeProgramType.valueOf(dwNode.getType()), "", resources),
-                    "python ./" + pyRes.getName()
-                    // TODO: how about parameters and replacement
-            ));
 
             String engineType = properties.getProperty(Constants.CONVERTER_TARGET_ENGINE_TYPE, "");
             if (StringUtils.equalsIgnoreCase(CalcEngineType.EMR.name(), engineType)) {
@@ -151,6 +130,23 @@ public class PythonParameterConverter extends AbstractParameterConverter<PythonP
             File tmpFIle = new File(FileUtils.getTempDirectory(), pyRes.getName());
             FileUtils.writeStringToFile(tmpFIle, parameter.getRawScript(), StandardCharsets.UTF_8);
             pyRes.setLocalPath(tmpFIle.getAbsolutePath());
+
+            Map<String, String> resourceMap = handleResourcesReference();
+            List<String> resources = new ArrayList<>();
+            if (resourceMap != null) {
+                resources.addAll(resourceMap.values());
+            }
+            resources.add(pyRes.getName());
+            String code = Joiner.on("\n").join(
+                    DataStudioCodeUtils.addResourceReference(CodeProgramType.of(dwNode.getType()), "", resources),
+                    "python ./" + pyRes.getName()
+            );
+            code = replaceCode(code, dwNode);
+            code = replaceResourceFullName(resourceMap, code);
+            dwNode.setCode(code);
+            if (type.equals(CodeProgramType.EMR_SHELL.name())) {
+                dwNode.setCode(EmrCodeUtils.toEmrCode(dwNode));
+            }
         }
         return Arrays.asList(dwNode);
     }

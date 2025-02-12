@@ -29,6 +29,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.Workflow;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.NodeUseType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.WorkflowType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.service.impl.DataWorksSpecPackageFileService;
+import com.aliyun.migrationx.common.utils.Config;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -40,6 +41,7 @@ import org.junit.Test;
 public class DataWorksSpecPackageFileServiceTest {
     @Test
     public void testWrite() throws Exception {
+        Config.init();
         DataWorksSpecPackageFileService service = new DataWorksSpecPackageFileService();
         service.setLocale(Locale.SIMPLIFIED_CHINESE);
         File targetFile = new File(new File(DataWorksSpecPackageFileServiceTest.class.getClassLoader().getResource("").getFile()), "test.zip");

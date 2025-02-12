@@ -28,7 +28,7 @@ import com.aliyun.dataworks.common.spec.domain.ref.runtime.SpecScriptRuntime;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DagData;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DolphinSchedulerV2Context;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.TaskDefinition;
-import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.process.ResourceInfo;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.task.sqoop.SqoopParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.task.sqoop.sources.SourceHdfsParameter;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.task.sqoop.sources.SourceHiveParameter;
@@ -88,7 +88,7 @@ public class SqoopParameterConverter extends AbstractParameterConverter<SqoopPar
     }
 
     private void processSqoopTarget(DIJsonProcessor writerJp) {
-        List<ResourceInfo> resourceInfos = DolphinSchedulerV2Context.getContext().getResources();
+        List<ResourceComponent> resourceInfos = DolphinSchedulerV2Context.getContext().getResources();
         writerJp.set("stepType", StringUtils.lowerCase(parameter.getTargetType()));
         if (StringUtils.equalsIgnoreCase(parameter.getTargetType(), "mysql")) {
             TargetMysqlParameter targetMysqlParameter = JSONUtils.parseObject(parameter.getTargetParams(),
@@ -151,7 +151,7 @@ public class SqoopParameterConverter extends AbstractParameterConverter<SqoopPar
 
     private void processSqoopSource(DIJsonProcessor readerJp) {
         readerJp.set("stepType", StringUtils.lowerCase(parameter.getSourceType()));
-        List<ResourceInfo> resourceInfos = DolphinSchedulerV2Context.getContext().getResources();
+        List<ResourceComponent> resourceInfos = DolphinSchedulerV2Context.getContext().getResources();
 
         if (StringUtils.equalsIgnoreCase(parameter.getSourceType(), "mysql")) {
             SourceMysqlParameter mysqlParameter = JSONUtils.parseObject(parameter.getSourceParams(),

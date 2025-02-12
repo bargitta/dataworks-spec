@@ -17,8 +17,8 @@ package com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphins
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
@@ -32,11 +32,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.mode
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.shell.ShellParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
 import com.aliyun.dataworks.migrationx.domain.dataworks.utils.DataStudioCodeUtils;
-import com.aliyun.dataworks.migrationx.domain.dataworks.utils.DefaultNodeTypeUtils;
 import com.aliyun.dataworks.migrationx.transformer.core.common.Constants;
-import com.aliyun.dataworks.migrationx.transformer.core.translator.HiveEofDelimiterCommandSqlTranslator;
-import com.aliyun.dataworks.migrationx.transformer.core.translator.SqoopToDITranslator;
-import com.aliyun.dataworks.migrationx.transformer.core.translator.TranslateUtils;
 import com.aliyun.dataworks.migrationx.transformer.core.utils.EmrCodeUtils;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.DolphinSchedulerConverterContext;
 
@@ -75,27 +71,32 @@ public class ShellParameterConverter extends AbstractParameterConverter<ShellPar
             codeLines.add(codeArgPredefine);
         }
         codeLines.add(parameter.getRawScript());
-        dwNode.setCode(Joiner.on("\n").join(codeLines));
+        String code = Joiner.on("\n").join(codeLines);
+        code = replaceCode(code, dwNode);
+        Map<String, String> resourceMap = handleResourcesReference();
+        code = replaceResourceFullName(resourceMap, code);
+        dwNode.setCode(code);
+
+        //boolean changed = TranslateUtils.translate(dwWorkflow, dwNode,
+        //        Collections.singletonList(SqoopToDITranslator.class), () -> CodeProgramType.DI);
+        //String sqlConverterType = getSQLConverterType(dwNode.getType());
+        //if (!changed) {
+        //    CodeProgramType nodeType = DefaultNodeTypeUtils.getTypeByName(sqlConverterType, CodeProgramType.DIDE_SHELL);
+        //    changed = TranslateUtils.translate(dwWorkflow, dwNode,
+        //            Collections.singletonList(HiveEofDelimiterCommandSqlTranslator.class), () -> nodeType);
+        //}
+        //
+        //if (!changed) {
+        //    changed = TranslateUtils.translateSparkSubmit(dwNode, properties);
+        //}
+        //
+        //if (!changed) {
+        //    changed = TranslateUtils.translateCommandSql(dwWorkflow, dwNode, sqlConverterType);
+        //}
+        //log.info("node: {}, type: {}, translation changed: {}", dwNode.getName(), dwNode.getType(), changed);
         if (StringUtils.equalsIgnoreCase(CodeProgramType.EMR_SHELL.name(), dwNode.getType())) {
             dwNode.setCode(EmrCodeUtils.toEmrCode(dwNode));
         }
-        boolean changed = TranslateUtils.translate(dwWorkflow, dwNode,
-                Collections.singletonList(SqoopToDITranslator.class), () -> CodeProgramType.DI);
-        String sqlConverterType = getSQLConverterType(dwNode.getType());
-        if (!changed) {
-            CodeProgramType nodeType = DefaultNodeTypeUtils.getTypeByName(sqlConverterType, CodeProgramType.DIDE_SHELL);
-            changed = TranslateUtils.translate(dwWorkflow, dwNode,
-                    Collections.singletonList(HiveEofDelimiterCommandSqlTranslator.class), () -> nodeType);
-        }
-
-        if (!changed) {
-            changed = TranslateUtils.translateSparkSubmit(dwNode, properties);
-        }
-
-        if (!changed) {
-            changed = TranslateUtils.translateCommandSql(dwWorkflow, dwNode, sqlConverterType);
-        }
-        log.info("node: {}, type: {}, translation changed: {}", dwNode.getName(), dwNode.getType(), changed);
 
         return Arrays.asList(dwNode);
     }

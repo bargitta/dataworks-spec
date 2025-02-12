@@ -40,6 +40,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DagD
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DolphinSchedulerV2Context;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.ProcessDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.TaskDefinition;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enums.Priority;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enums.TaskType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.task.AbstractParameters;
@@ -70,6 +71,7 @@ import com.aliyun.migrationx.common.utils.UuidGenerators;
 
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -270,6 +272,16 @@ public abstract class AbstractParameterConverter<T extends AbstractParameters> {
         ListUtils.emptyIfNull(parameter.getResourceFilesList()).forEach(resourceInfo -> {
             SpecFileResource specFileResource = new SpecFileResource();
             specFileResource.setRuntimeResource(specNode.getRuntimeResource());
+            if (resourceInfo.getName() == null) {
+                ResourceComponent resourceComponent = getResourceById(resourceInfo.getId());
+                if (resourceComponent != null) {
+                    resourceInfo.setResourceName(resourceComponent.getResourceName() == null ?
+                            resourceComponent.getName() : resourceComponent.getResourceName());
+                    resourceInfo.setName(resourceComponent.getName());
+                    resourceInfo.setFullName(resourceComponent.getFullName());
+                    resourceInfo.setType(resourceComponent.getType());
+                }
+            }
             specFileResource.setName(getFileNameByPath(resourceInfo.getResourceName()));
             specFileResource.setType(SpecFileResourceTypeUtils.getResourceTypeBySuffix(specFileResource.getName()));
             checkFileSameName(specFileResource.getName(), resourceInfo.getResourceName());
@@ -342,7 +354,7 @@ public abstract class AbstractParameterConverter<T extends AbstractParameters> {
         if (Objects.isNull(specNode)) {
             return StringUtils.EMPTY;
         }
-        String defaultPath = StringUtils.defaultString(Config.INSTANCE.getBasePath(), StringUtils.EMPTY);
+        String defaultPath = StringUtils.defaultString(Config.get().getBasePath(), StringUtils.EMPTY);
         String workFlowPath = Optional.ofNullable(specWorkflow)
                 .map(SpecWorkflow::getName)
                 .orElse(StringUtils.EMPTY);
@@ -446,6 +458,29 @@ public abstract class AbstractParameterConverter<T extends AbstractParameters> {
             default:
                 return null;
         }
+    }
+
+    protected ResourceComponent getResourceById(Integer id) {
+        if (id == null) {
+            return null;
+        }
+        DolphinSchedulerV2Context context = DolphinSchedulerV2Context.getContext();
+        return CollectionUtils.emptyIfNull(context.getResources())
+                .stream()
+                .filter(r -> r.getId() == id)
+                .findAny().orElse(null);
+    }
+
+    protected String getResourceNameById(Integer id) {
+        ResourceComponent resourceComponent = getResourceById(id);
+        if (resourceComponent == null) {
+            return null;
+        }
+        String name = resourceComponent.getFileName();
+        if (StringUtils.isEmpty(name)) {
+            name = resourceComponent.getName();
+        }
+        return name;
     }
 
     protected String getConverterType(String convertType, String defaultConvertType) {

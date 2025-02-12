@@ -126,8 +126,14 @@ public class V1ProcessDefinitionConverter
                     }
                     return true;
                 })
-                .filter(task -> filter.filter(processDefinition.getProjectName(),
-                        processDefinition.getProcessDefinitionName(), task.getName()))
+                .filter(task -> {
+                    boolean willConvert = filter.filterTasks(processDefinition.getProjectName(),
+                            processDefinition.getProcessDefinitionName(), task.getName());
+                    if (!willConvert) {
+                        log.warn("task {} not in filterTasks list", task.getName());
+                    }
+                    return willConvert;
+                })
                 .filter(taskNode -> !inSkippedList(taskNode))
                 .map(taskNode -> {
                     List<DwWorkflow> dwWorkflows = convertTaskToWorkflowWithLoadedTask(taskNode, loadedTasks);
@@ -156,7 +162,7 @@ public class V1ProcessDefinitionConverter
             converter.convert();
         } catch (UnSupportedTypeException e) {
             markFailedProcess(taskNode, e.getMessage());
-            if (Config.INSTANCE.isSkipUnSupportType()) {
+            if (Config.get().isSkipUnSupportType()) {
                 List<DwWorkflow> list = Collections.emptyList();
                 return list;
             } else {
@@ -164,7 +170,11 @@ public class V1ProcessDefinitionConverter
             }
         } catch (Throwable e) {
             log.error("task converter error: ", e);
-            throw new RuntimeException(e);
+            if (Config.get().isTransformContinueWithError()) {
+                return Collections.emptyList();
+            } else {
+                throw new RuntimeException(e);
+            }
         }
         return converter.getWorkflowList();
     }
@@ -187,8 +197,8 @@ public class V1ProcessDefinitionConverter
     }
 
     private boolean inSkippedList(TaskNode taskNode) {
-        if (Config.INSTANCE.getSkipTypes().contains(taskNode.getType())
-                || Config.INSTANCE.getSkipTaskCodes().contains(taskNode.getName())) {
+        if (Config.get().getSkipTypes().contains(taskNode.getType())
+                || Config.get().getSkipTaskCodes().contains(taskNode.getName())) {
             log.warn("task name {}  in skipped list", taskNode.getName());
             markSkippedProcess(taskNode);
             return true;

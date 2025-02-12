@@ -16,6 +16,7 @@
 package com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v2.nodes;
 
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DagData;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.ProcessDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enums.TaskType;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.DolphinSchedulerConverterContext;
@@ -34,16 +35,27 @@ import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinsc
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v2.nodes.parameters.SqoopParameterConverter;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v2.nodes.parameters.SubProcessParameterConverter;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v2.nodes.parameters.SwitchParameterConverter;
+import com.aliyun.migrationx.common.context.TransformerContext;
 import com.aliyun.migrationx.common.exception.UnSupportedTypeException;
+import com.aliyun.migrationx.common.metrics.DolphinMetrics;
 import com.aliyun.migrationx.common.utils.Config;
 
 public class TaskConverterFactoryV2 {
     public static AbstractParameterConverter create(
             DagData processMeta, TaskDefinition taskDefinition, DolphinSchedulerConverterContext converterContext) throws Throwable {
-        if (Config.INSTANCE.getTempTaskTypes().contains(taskDefinition.getTaskType())) {
+
+        TransformerContext.getCollector().incrementType(taskDefinition.getTaskType());
+
+        if (Config.get().getTempTaskTypes().contains(taskDefinition.getTaskType())) {
             return new CustomParameterConverter(processMeta, taskDefinition, converterContext);
         }
-        TaskType taskType = TaskType.of(taskDefinition.getTaskType());
+        TaskType taskType;
+        try {
+            taskType = TaskType.of(taskDefinition.getTaskType());
+        } catch (Exception e) {
+            markUnSupportedTask(processMeta.getProcessDefinition(), taskDefinition);
+            throw new UnSupportedTypeException(taskDefinition.getTaskType());
+        }
 
         switch (taskType) {
             case PROCEDURE:
@@ -73,7 +85,21 @@ public class TaskConverterFactoryV2 {
             case SQOOP:
                 return new SqoopParameterConverter(processMeta, taskDefinition, converterContext);
             default:
+                markUnSupportedTask(processMeta.getProcessDefinition(), taskDefinition);
                 throw new UnSupportedTypeException(taskDefinition.getTaskType());
         }
+    }
+
+    private static void markUnSupportedTask(ProcessDefinition processDefinition, TaskDefinition taskDefinition) {
+        DolphinMetrics metrics = DolphinMetrics.builder()
+                .projectName(processDefinition.getProjectName())
+                .projectCode(processDefinition.getProjectCode())
+                .processName(processDefinition.getName())
+                .processCode(processDefinition.getCode())
+                .taskName(taskDefinition.getName())
+                .taskCode(taskDefinition.getCode())
+                .taskType(taskDefinition.getTaskType())
+                .build();
+        TransformerContext.getCollector().markUnSupportedSpecProcess(metrics);
     }
 }

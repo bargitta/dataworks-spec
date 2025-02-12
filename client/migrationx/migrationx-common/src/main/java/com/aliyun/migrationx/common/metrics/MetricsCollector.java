@@ -17,8 +17,6 @@ package com.aliyun.migrationx.common.metrics;
 
 import java.util.function.Consumer;
 
-import com.aliyun.migrationx.common.metrics.DolphinMetricsCollector.Summary;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +43,10 @@ public interface MetricsCollector {
 
     void markTempSpecProcess(Metrics metrics);
 
+    void markUnSupportedSpecProcess(Metrics metrics);
+
+    void incrementType(String taskType);
+
     void markSuccessSpecProcess(String workflowName, String nodeName);
 
     void markSuccessSpecProcess(Metrics metrics);
@@ -55,7 +57,7 @@ public interface MetricsCollector {
 
     void finishCollector();
 
-    void finishCollector(Consumer<Summary> c);
+    void finishCollector(Consumer<Object> c);
 
     Progress progress();
 }

@@ -15,28 +15,34 @@
 
 package com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Joiner;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.UUID;
 
 /**
  * @author sam.liux
  * @date 2020/02/13
  */
 @ToString(callSuper = true, exclude = {"projectRef"})
+@Slf4j
 public class DwDatasource extends Datasource {
     @JsonIgnore
     private transient Project projectRef;
 
     @Override
     public String getUniqueKey() {
+        if (StringUtils.isEmpty(getName()) || StringUtils.isEmpty(getType())) {
+            log.warn("getUniqueKey is empty, name:{},type:{}", getName(), getType());
+            return UUID.randomUUID().toString();
+        }
         String str = Joiner.on("#").join(
-            getName(), getType(),
-            StringUtils.defaultIfBlank(getEnvType(), ""),
-            StringUtils.defaultIfBlank(getSubType(), ""));
+                getName(), getType(),
+                StringUtils.defaultIfBlank(getEnvType(), ""),
+                StringUtils.defaultIfBlank(getSubType(), ""));
         return UUID.nameUUIDFromBytes(str.getBytes()).toString();
     }
 

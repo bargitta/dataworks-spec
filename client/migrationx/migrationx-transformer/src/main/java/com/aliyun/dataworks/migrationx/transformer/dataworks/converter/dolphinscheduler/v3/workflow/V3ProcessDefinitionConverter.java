@@ -46,9 +46,11 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.Proc
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.Schedule;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.enums.Priority;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.v301.ReleaseState;
 import com.aliyun.dataworks.migrationx.transformer.core.checkpoint.CheckPoint;
 import com.aliyun.dataworks.migrationx.transformer.core.checkpoint.StoreWriter;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.filters.DolphinSchedulerConverterFilter;
+import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.utils.DolphinFilter;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v3.workflow.parameters.AbstractParameterConverter;
 import com.aliyun.migrationx.common.context.TransformerContext;
 import com.aliyun.migrationx.common.exception.UnSupportedTypeException;
@@ -111,6 +113,11 @@ public class V3ProcessDefinitionConverter {
     }
 
     public SpecWorkflow convert() {
+        log.info("converting processDefinition {}", processDefinition.getName());
+        if (!willConvert()) {
+            return null;
+        }
+
         SpecWorkflow specWorkflow = convertProcess(processDefinition);
         DolphinSchedulerV3Context.getContext().getSubProcessCodeWorkflowMap().put(processDefinition.getCode(), specWorkflow);
         convertTaskDefinitions(specWorkflow);
@@ -118,6 +125,13 @@ public class V3ProcessDefinitionConverter {
         convertTaskRelations(specWorkflow);
         handleBranch(specWorkflow);
         return specWorkflow;
+    }
+
+    private boolean willConvert() {
+        List<String> codes = DolphinSchedulerV3Context.getContext().getSubProcessCodeMap(processDefinition.getCode());
+        ReleaseState releaseState = processDefinition.getReleaseState();
+        return DolphinFilter.willConvert(processDefinition.getName(),
+                releaseState == null ? null : releaseState.name(), codes);
     }
 
     protected SpecWorkflow convertProcess(ProcessDefinition processDefinition) {
@@ -142,7 +156,7 @@ public class V3ProcessDefinitionConverter {
     }
 
     protected String getScriptPath(String name) {
-        String defaultPath = StringUtils.defaultString(Config.INSTANCE.getBasePath(), StringUtils.EMPTY);
+        String defaultPath = StringUtils.defaultString(Config.get().getBasePath(), StringUtils.EMPTY);
         return FilenameUtils.concat(defaultPath, name);
     }
 
@@ -245,11 +259,11 @@ public class V3ProcessDefinitionConverter {
                             return true;
                         })
                         .filter(task -> {
-                            boolean passed = filter.filter(projectName, processName, task.getName());
-                            if (!passed) {
-                                log.warn("task filtered {}", task.getName());
+                            boolean willConvert = filter.filterTasks(projectName, processName, task.getName());
+                            if (!willConvert) {
+                                log.warn("task {} not in filterTasks list", task.getName());
                             }
-                            return passed;
+                            return willConvert;
                         })
                         .map(task -> {
                             List<SpecNode> specNodes = convertTaskToWorkflowWithLoadedTask(specWorkflow, task, loadedTasks);
@@ -292,7 +306,7 @@ public class V3ProcessDefinitionConverter {
             }
         } catch (UnSupportedTypeException e) {
             markFailedProcess(taskDefinition, e.getMessage());
-            if (Config.INSTANCE.isSkipUnSupportType()) {
+            if (Config.get().isSkipUnSupportType()) {
                 log.warn("task {} with type {} unsupported, skip", taskDefinition.getTaskType(), taskDefinition.getName());
                 return Collections.emptyList();
             } else {
@@ -300,7 +314,7 @@ public class V3ProcessDefinitionConverter {
             }
         } catch (Throwable e) {
             log.error("task converter error, taskName {} ", taskDefinition.getName(), e);
-            if (Config.INSTANCE.isTransformContinueWithError()) {
+            if (Config.get().isTransformContinueWithError()) {
                 return Collections.emptyList();
             } else {
                 throw new RuntimeException(e);
@@ -329,8 +343,8 @@ public class V3ProcessDefinitionConverter {
     }
 
     private boolean inSkippedList(TaskDefinition taskDefinition) {
-        if (Config.INSTANCE.getSkipTypes().contains(taskDefinition.getTaskType())
-                || Config.INSTANCE.getSkipTaskCodes().contains(String.valueOf(taskDefinition.getCode()))) {
+        if (Config.get().getSkipTypes().contains(taskDefinition.getTaskType())
+                || Config.get().getSkipTaskCodes().contains(String.valueOf(taskDefinition.getCode()))) {
             log.warn("task name {} code {} in skipped list", taskDefinition.getName(), taskDefinition.getCode());
             markSkippedProcess(taskDefinition);
             return true;

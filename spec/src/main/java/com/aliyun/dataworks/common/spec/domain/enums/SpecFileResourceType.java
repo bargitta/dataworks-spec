@@ -17,12 +17,15 @@ package com.aliyun.dataworks.common.spec.domain.enums;
 
 import com.aliyun.dataworks.common.spec.domain.interfaces.LabelEnum;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * File resource types
  *
  * @author 聿剑
  * @date 2023/11/29
  */
+@Slf4j
 public enum SpecFileResourceType implements LabelEnum {
     /**
      * Python file resource type
@@ -54,5 +57,18 @@ public enum SpecFileResourceType implements LabelEnum {
     @Override
     public String getLabel() {
         return label;
+    }
+
+    public SpecFileResourceType of(String label) {
+        if (label == null) {
+            log.error("label is null");
+        }
+        for (SpecFileResourceType type : SpecFileResourceType.values()) {
+            if (type.label.equalsIgnoreCase(label)) {
+                return type;
+            }
+        }
+        log.error("SpecFileResourceType {} not found", label);
+        return null;
     }
 }

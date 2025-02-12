@@ -1,17 +1,29 @@
 {
   "format": "SPEC",
   "locale": "zh_CN",
+  "skipUnSupportType": true,
+  "transformContinueWithError": true,
+  "specContinueWithError": true,
+  "filterTasks": [
+    "*"
+  ],
   "settings": {
-    "workflow.converter.shellNodeType": "EMR_SHELL",
+    "workflow.converter.shellNodeType": {
+      "ff.shell1.shell2": "DIDE_SHELL",
+      "ff.shell1.*": "EMR_SHELL",
+      "ff.*": "EMR_SHELL",
+      "*": "EMR_SHELL"
+    },
     "workflow.converter.commandSqlAs": "EMR_HIVE",
     "workflow.converter.sparkSubmitAs": "EMR_SPARK",
-    "workflow.converter.target.unknownNodeTypeAs": "DIDE_SHELL",
+    "workflow.converter.target.unknownNodeTypeAs": "EMR_SHELL",
     "workflow.converter.mrNodeType": "EMR_MR",
     "workflow.converter.target.engine.type": "EMR",
     "workflow.converter.dolphinscheduler.sqlNodeTypeMapping": {
       "POSTGRESQL": "EMR_HIVE",
       "MYSQL": "EMR_HIVE",
-      "HIVE": "EMR_HIVE"
+      "HIVE": "EMR_HIVE",
+      "CLICKHOUSE": "CLICK_SQL"
     }
   }
 }

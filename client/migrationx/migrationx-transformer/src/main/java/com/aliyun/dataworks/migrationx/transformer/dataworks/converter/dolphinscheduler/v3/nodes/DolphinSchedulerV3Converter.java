@@ -112,7 +112,8 @@ public class DolphinSchedulerV3Converter extends AbstractDolphinSchedulerConvert
         //processSubProcessDefinitionDepends();
         setProjectRootDependForNoInputNode(project, dwWorkflowList);
         convertDataSources(project);
-        setResources(dwWorkflowList.size() > 0 ? dwWorkflowList.get(0) : null);
+        //todo add all resources
+        //setResources(dwWorkflowList.size() > 0 ? dwWorkflowList.get(0) : null);
         return dwWorkflowList;
     }
 
@@ -188,7 +189,7 @@ public class DolphinSchedulerV3Converter extends AbstractDolphinSchedulerConvert
             resources.add(resource);
         }
 
-        workflow.setResources(resources);
+        workflow.getResources().addAll(resources);
     }
 
     private List<DwWorkflow> convertProcessMetaListToDwWorkflowList(List<DagData> dataList) {
@@ -211,7 +212,7 @@ public class DolphinSchedulerV3Converter extends AbstractDolphinSchedulerConvert
             return definitionConverter.convert();
         } catch (UnSupportedTypeException e) {
             log.error("", e);
-            if (Config.INSTANCE.isSkipUnSupportType()) {
+            if (Config.get().isSkipUnSupportType()) {
                 return Collections.emptyList();
             } else {
                 throw e;
@@ -252,9 +253,11 @@ public class DolphinSchedulerV3Converter extends AbstractDolphinSchedulerConvert
                         dwDatasource.setDescription(ds.getNote());
                     } catch (Exception e) {
                         log.error("can not handle type {}", ds);
+                        return null;
                     }
                     return dwDatasource;
-                }).collect(Collectors.toList()));
+                }).filter(Objects::nonNull)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -271,6 +274,7 @@ public class DolphinSchedulerV3Converter extends AbstractDolphinSchedulerConvert
                                 JsonObject jsonObject = GsonUtils.fromJsonString(task.getTaskParams(), JsonObject.class);
                                 if (jsonObject.has("processDefinitionCode")) {
                                     Long processDefCode = jsonObject.get("processDefinitionCode").getAsLong();
+                                    //task dependent process code
                                     String out = getDefaultNodeOutput(processDefinition, task.getName());
                                     DolphinSchedulerV3Context.getContext().putSubProcessCodeOutMap(processDefCode, out + ".virtual.start");
                                 }

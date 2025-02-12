@@ -25,6 +25,7 @@ import com.aliyun.dataworks.common.spec.adapter.SpecHandlerContext;
 import com.aliyun.dataworks.common.spec.domain.DataWorksWorkflowSpec;
 import com.aliyun.dataworks.common.spec.domain.Specification;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
+import com.aliyun.dataworks.common.spec.domain.enums.SpecKind;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecNode;
 import com.aliyun.dataworks.common.spec.domain.ref.component.SpecComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
@@ -164,5 +165,25 @@ public class NodeSpecAdapterTest {
         Assert.assertNotNull(com.getName());
         Assert.assertNotNull(com.getId());
         Assert.assertEquals(3, com.getInputs().size());
+    }
+
+    @Test
+    public void testManualNodeWithIncorrectUseType() {
+        DwNode dwNode = new DwNode();
+        dwNode.setName("test1");
+        dwNode.setGlobalUuid("111");
+        dwNode.setNodeUseType(NodeUseType.MANUAL_WORKFLOW);
+        dwNode.setType(CodeProgramType.DIDE_SHELL.getName());
+        String content = "echo hello";
+        dwNode.setCode(content);
+
+        NodeSpecAdapter adapter = new NodeSpecAdapter();
+        SpecHandlerContext context = new SpecHandlerContext();
+        String spec = adapter.getNodeSpec(new DwNodeEntityAdapter(dwNode), context);
+        log.info("spec: {}", spec);
+        Specification<DataWorksWorkflowSpec> sp = SpecUtil.parseToDomain(spec);
+        Assert.assertNotNull(sp);
+        Assert.assertNotNull(sp.getSpec());
+        Assert.assertEquals(SpecKind.MANUAL_NODE.getLabel(), sp.getKind());
     }
 }

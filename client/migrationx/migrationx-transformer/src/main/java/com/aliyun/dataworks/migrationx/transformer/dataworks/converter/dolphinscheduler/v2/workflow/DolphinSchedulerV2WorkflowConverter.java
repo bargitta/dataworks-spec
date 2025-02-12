@@ -33,9 +33,13 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.Dolp
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.UdfFunc;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enums.TaskType;
+import com.aliyun.migrationx.common.utils.GsonUtils;
 
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 
 @Slf4j
 public class DolphinSchedulerV2WorkflowConverter {
@@ -61,6 +65,7 @@ public class DolphinSchedulerV2WorkflowConverter {
 
     public List<Specification<DataWorksWorkflowSpec>> convert() {
         List<Specification<DataWorksWorkflowSpec>> specifications = new ArrayList<>();
+        preHandleSubProcess(dagDataList);
         for (DagData dagData : dagDataList) {
             List<SpecWorkflow> workflows = new ArrayList<>();
             //convert process to workflow
@@ -72,6 +77,9 @@ public class DolphinSchedulerV2WorkflowConverter {
             spec.setName(processName);
             V2ProcessDefinitionConverter converter = new V2ProcessDefinitionConverter(dagData, this.converterProperties);
             SpecWorkflow workflow = converter.convert();
+            if (workflow == null) {
+                continue;
+            }
             workflows.add(workflow);
             spec.setWorkflows(workflows);
             specification.setSpec(spec);
@@ -80,6 +88,21 @@ public class DolphinSchedulerV2WorkflowConverter {
         handleSubprocess();
         handleDependents(specifications);
         return specifications;
+    }
+
+    private void preHandleSubProcess(List<DagData> dagDataList) {
+        for (DagData dagData : ListUtils.emptyIfNull(dagDataList)) {
+            dagData.getTaskDefinitionList().stream()
+                    .filter(task -> TaskType.SUB_PROCESS.name().equalsIgnoreCase(task.getTaskType()))
+                    .forEach(task -> {
+                                JsonObject jsonObject = GsonUtils.fromJsonString(task.getTaskParams(), JsonObject.class);
+                                if (jsonObject.has("processDefinitionCode")) {
+                                    Long processDefCode = jsonObject.get("processDefinitionCode").getAsLong();
+                                    DolphinSchedulerV2Context.getContext().putSubProcessCodeOutMap(processDefCode, String.valueOf(processDefCode));
+                                }
+                            }
+                    );
+        }
     }
 
     /**
@@ -92,6 +115,10 @@ public class DolphinSchedulerV2WorkflowConverter {
         for (Map.Entry<Long, Object> entry : codeNodeMap.entrySet()) {
             //find workflow
             SpecWorkflow specWorkflow = (SpecWorkflow) codeWorkflowMap.get(entry.getKey());
+            if (specWorkflow == null) {
+                //subprocess is filtered
+                continue;
+            }
             SpecNodeOutput specNodeOutput;
             if (specWorkflow.getOutputs().isEmpty()) {
                 specNodeOutput = new SpecNodeOutput();

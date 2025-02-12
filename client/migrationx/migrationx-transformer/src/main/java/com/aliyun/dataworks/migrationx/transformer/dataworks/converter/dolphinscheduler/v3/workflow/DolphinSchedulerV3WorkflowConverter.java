@@ -28,14 +28,18 @@ import com.aliyun.dataworks.common.spec.domain.ref.SpecNodeOutput;
 import com.aliyun.dataworks.common.spec.domain.ref.SpecWorkflow;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.DolphinSchedulerPackage;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.Project;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enums.TaskType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.DagData;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.DolphinSchedulerV3Context;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.UdfFunc;
+import com.aliyun.migrationx.common.utils.GsonUtils;
 
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 
 @Slf4j
 public class DolphinSchedulerV3WorkflowConverter {
@@ -61,6 +65,7 @@ public class DolphinSchedulerV3WorkflowConverter {
 
     public List<Specification<DataWorksWorkflowSpec>> convert() {
         List<Specification<DataWorksWorkflowSpec>> specifications = new ArrayList<>();
+        preHandleSubProcess(dagDataList);
         for (DagData dagData : dagDataList) {
             List<SpecWorkflow> workflows = new ArrayList<>();
             //convert process to workflow
@@ -72,6 +77,9 @@ public class DolphinSchedulerV3WorkflowConverter {
             spec.setName(processName);
             V3ProcessDefinitionConverter converter = new V3ProcessDefinitionConverter(dagData, this.converterProperties);
             SpecWorkflow workflow = converter.convert();
+            if (workflow == null) {
+                continue;
+            }
             workflows.add(workflow);
             spec.setWorkflows(workflows);
             specification.setSpec(spec);
@@ -82,6 +90,20 @@ public class DolphinSchedulerV3WorkflowConverter {
         return specifications;
     }
 
+    private void preHandleSubProcess(List<DagData> dagDataList) {
+        for (DagData dagData : ListUtils.emptyIfNull(dagDataList)) {
+            dagData.getTaskDefinitionList().stream()
+                    .filter(task -> TaskType.SUB_PROCESS.name().equalsIgnoreCase(task.getTaskType()))
+                    .forEach(task -> {
+                                JsonObject jsonObject = GsonUtils.fromJsonString(task.getTaskParams(), JsonObject.class);
+                                if (jsonObject.has("processDefinitionCode")) {
+                                    Long processDefCode = jsonObject.get("processDefinitionCode").getAsLong();
+                                    DolphinSchedulerV3Context.getContext().putSubProcessCodeOutMap(processDefCode, String.valueOf(processDefCode));
+                                }
+                            }
+                    );
+        }
+    }
     /**
      * subprocess
      */
@@ -92,6 +114,10 @@ public class DolphinSchedulerV3WorkflowConverter {
         for (Map.Entry<Long, Object> entry : codeNodeMap.entrySet()) {
             //find workflow
             SpecWorkflow specWorkflow = (SpecWorkflow) codeWorkflowMap.get(entry.getKey());
+            if (specWorkflow == null) {
+                //subprocess is filtered
+                continue;
+            }
             SpecNodeOutput specNodeOutput;
             if (specWorkflow.getOutputs().isEmpty()) {
                 specNodeOutput = new SpecNodeOutput();

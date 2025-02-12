@@ -15,17 +15,23 @@
 
 package com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v3.nodes.parameters;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import com.aliyun.dataworks.common.spec.domain.dw.types.CalcEngineType;
+import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
+import com.aliyun.dataworks.common.spec.domain.dw.types.LabelType;
 import com.aliyun.dataworks.common.spec.utils.ReflectUtils;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.enums.TaskType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.task.conditions.ConditionResult;
@@ -36,8 +42,10 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.Proc
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.Project;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.UdfFunc;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.enums.DbType;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.model.Property;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.model.ResourceInfo;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.conditions.ConditionsParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.datax.DataxParameters;
@@ -58,28 +66,38 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.switchs.SwitchParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNodeIo;
+import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwResource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwWorkflow;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.NodeIo;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.NodeUseType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.RerunMode;
+import com.aliyun.dataworks.migrationx.domain.dataworks.objects.types.ResourceType;
 import com.aliyun.dataworks.migrationx.transformer.core.common.Constants;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.AbstractBaseConverter;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.DolphinSchedulerConverterContext;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.utils.ConverterTypeUtils;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v1.nodes.parameters.ConditionsParameterConverter;
+import com.aliyun.dataworks.migrationx.transformer.dataworks.transformer.DataWorksTransformerConfig;
 import com.aliyun.migrationx.common.context.TransformerContext;
 import com.aliyun.migrationx.common.metrics.DolphinMetrics;
+import com.aliyun.migrationx.common.utils.Config;
+import com.aliyun.migrationx.common.utils.Config.Replaced;
 import com.aliyun.migrationx.common.utils.GsonUtils;
+import com.aliyun.migrationx.common.utils.JSONUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public abstract class AbstractParameterConverter<Parameter extends AbstractParameters> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBaseConverter.class);
 
@@ -239,12 +257,8 @@ public abstract class AbstractParameterConverter<Parameter extends AbstractParam
 
         // outputs
         setOutputs(dwNode);
-        if (parameter != null) {
-            dwNode.setParameter(Joiner.on(" ").join(ListUtils.emptyIfNull(parameter.getLocalParams()).stream()
-                    .map(property -> property.getProp() + "=" + property.getValue())
-                    .collect(Collectors.toList())));
-        }
         //parameters
+        dwNode.setParameter(getParameter());
 
         Set<TaskDefinition> preTasks = listPreTasks();
         //inputs
@@ -291,6 +305,34 @@ public abstract class AbstractParameterConverter<Parameter extends AbstractParam
 
         dwNode.setResourceGroup(properties.getProperty(Constants.CONVERTER_TARGET_SCHEDULE_RES_GROUP_IDENTIFIER, null));
         return dwNode;
+    }
+
+    protected String getParameter() {
+        //parameters
+        List<String> paramList = new ArrayList<>();
+        //local param
+        if (CollectionUtils.isNotEmpty(parameter.getLocalParams())) {
+            List<String> localParamList = ListUtils.emptyIfNull(parameter.getLocalParams()).stream()
+                    .map(property -> property.getProp() + "=" + property.getValue())
+                    .collect(Collectors.toList());
+            paramList.addAll(localParamList);
+        }
+
+        //global param
+        if (Config.get().isIncludeGlobalParam()) {
+            String globalParams = processMeta.getGlobalParams();
+            if (StringUtils.isNotEmpty(globalParams)) {
+                List<Property> globalProperties = JSONUtils.parseObject(globalParams, new TypeReference<List<Property>>() {});
+                List<String> globalList = globalProperties.stream()
+                        .map(property -> property.getProp() + "=" + property.getValue())
+                        .filter(s -> !paramList.contains(s))
+                        .collect(Collectors.toList());
+                paramList.addAll(globalList);
+            }
+        }
+
+        String paraStr = Joiner.on(" ").join(paramList);
+        return paraStr;
     }
 
     protected void setOutputs(DwNode dwNode) {
@@ -371,5 +413,130 @@ public abstract class AbstractParameterConverter<Parameter extends AbstractParam
         String processName = processMeta.getName();
         String taskName = taskDefinition.getName();
         return ConverterTypeUtils.getConverterType(convertType, projectName, processName, taskName, defaultConvertType);
+    }
+
+    protected String replaceCode(String code, DwNode dwNode) {
+        if (Config.get().getReplaceMapping() == null) {
+            return code;
+        }
+
+        for (Replaced pattern : Config.get().getReplaceMapping()) {
+            if (taskDefinition.getTaskType().equalsIgnoreCase(pattern.getTaskType())) {
+                Matcher matcher = pattern.getParsedPattern().matcher(code);
+                if (matcher.find()) {
+                    String param = " " + pattern.getParam();
+                    dwNode.setParameter(dwNode.getParameter() + param);
+                }
+                code = matcher.replaceAll(pattern.getTarget());
+            }
+        }
+        return code;
+    }
+
+    protected String replaceResourceFullName(Map<String, String> resourceMap, String code) {
+        if (MapUtils.isEmpty(resourceMap)) {
+            return code;
+        }
+        for (Map.Entry<String, String> entry : resourceMap.entrySet()) {
+            code = code.replace(entry.getKey(), entry.getValue());
+        }
+        return code;
+    }
+
+    protected Map<String, String> handleResourcesReference() {
+        Map<String, String> resourceNames = new HashMap<>();
+        for (ResourceInfo resourceInfo : parameter.getResourceFilesList()) {
+            ResourceComponent resourceComponent = getResourceById(resourceInfo.getId());
+            if (resourceComponent == null) {
+                continue;
+            }
+            if (StringUtils.isEmpty(resourceComponent.getFileName())) {
+                resourceComponent.setFileName(resourceComponent.getName());
+            }
+            resourceInfo.setResourceName(resourceComponent.getFileName());
+            resourceInfo.setFullName(resourceComponent.getFullName());
+            DwResource dwResource = buildResource(resourceInfo);
+            resourceNames.put(resourceComponent.getFullName(), resourceComponent.getFileName());
+            dwWorkflow.getResources().add(dwResource);
+        }
+        return resourceNames;
+    }
+
+    private DwResource buildResource(ResourceInfo resourceInfo) {
+        DwResource pyRes = new DwResource();
+        pyRes.setName(resourceInfo.getResourceName());
+        pyRes.setWorkflowRef(dwWorkflow);
+        String engineType = properties.getProperty(Constants.CONVERTER_TARGET_ENGINE_TYPE, "");
+        if (StringUtils.equalsIgnoreCase(CalcEngineType.EMR.name(), engineType)) {
+            if (resourceInfo.getResourceName().endsWith(".jar")) {
+                pyRes.setType(CodeProgramType.EMR_JAR.name());
+                pyRes.setExtend(ResourceType.JAR.name());
+            } else {
+                pyRes.setType(CodeProgramType.EMR_FILE.name());
+                pyRes.setExtend(ResourceType.FILE.name());
+            }
+
+            List<String> paths = new ArrayList<>();
+            DataWorksTransformerConfig config = DataWorksTransformerConfig.getConfig();
+            if (config != null) {
+                paths.add(CalcEngineType.EMR.getDisplayName(config.getLocale()));
+                paths.add(LabelType.RESOURCE.getDisplayName(config.getLocale()));
+            } else {
+                paths.add(CalcEngineType.EMR.getDisplayName(Locale.SIMPLIFIED_CHINESE));
+                paths.add(LabelType.RESOURCE.getDisplayName(Locale.SIMPLIFIED_CHINESE));
+            }
+
+            pyRes.setFolder(Joiner.on(File.separator).join(paths));
+        } else if (StringUtils.equalsIgnoreCase(CalcEngineType.ODPS.name(), engineType)) {
+            //todo check type
+            if (resourceInfo.getResourceName().endsWith(".jar")) {
+                pyRes.setType(CodeProgramType.ODPS_JAR.name());
+                pyRes.setExtend(ResourceType.JAR.name());
+            } else if (resourceInfo.getResourceName().endsWith(".sql")) {
+                pyRes.setType(CodeProgramType.ODPS_SQL.name());
+                pyRes.setExtend(ResourceType.FILE.name());
+            } else {
+                pyRes.setType(CodeProgramType.ODPS_FILE.name());
+                pyRes.setExtend(ResourceType.FILE.name());
+            }
+
+            List<String> paths = new ArrayList<>();
+            DataWorksTransformerConfig config = DataWorksTransformerConfig.getConfig();
+            if (config != null) {
+                paths.add(CalcEngineType.HADOOP_CDH.getDisplayName(config.getLocale()));
+                paths.add(LabelType.RESOURCE.getDisplayName(config.getLocale()));
+            } else {
+                paths.add(CalcEngineType.HADOOP_CDH.getDisplayName(Locale.SIMPLIFIED_CHINESE));
+                paths.add(LabelType.RESOURCE.getDisplayName(Locale.SIMPLIFIED_CHINESE));
+            }
+            pyRes.setFolder(Joiner.on(File.separator).join(paths));
+        }
+
+        String source = Config.get().getSource() + File.separator + "resource" + File.separator + resourceInfo.getFullName();
+        pyRes.setLocalPath(source);
+        return pyRes;
+    }
+
+    protected ResourceComponent getResourceById(Integer id) {
+        if (id == null) {
+            return null;
+        }
+        DolphinSchedulerV3Context context = DolphinSchedulerV3Context.getContext();
+        return CollectionUtils.emptyIfNull(context.getResources())
+                .stream()
+                .filter(r -> r.getId() == id)
+                .findAny().orElse(null);
+    }
+
+    protected String getResourceNameById(Integer id) {
+        ResourceComponent resourceComponent = getResourceById(id);
+        if (resourceComponent == null) {
+            return null;
+        }
+        String name = resourceComponent.getFileName();
+        if (StringUtils.isEmpty(name)) {
+            name = resourceComponent.getName();
+        }
+        return name;
     }
 }

@@ -83,7 +83,11 @@ public class SqlParameterConverter extends AbstractParameterConverter<SqlParamet
 
         dwNode.setType(codeProgramType);
         dwNode.setConnection(getConnectionName(codeProgramType));
-        dwNode.setCode(parameter.getSql());
+        String code = parameter.getSql();
+        code = replaceCode(code, dwNode);
+        Map<String, String> resourceMap = handleResourcesReference();
+        code = replaceResourceFullName(resourceMap, code);
+        dwNode.setCode(code);
         if (CodeProgramType.EMR_HIVE.name().equals(codeProgramType) || CodeProgramType.EMR_SPARK.name().equals(codeProgramType)) {
             dwNode.setCode(EmrCodeUtils.toEmrCode(dwNode));
         }

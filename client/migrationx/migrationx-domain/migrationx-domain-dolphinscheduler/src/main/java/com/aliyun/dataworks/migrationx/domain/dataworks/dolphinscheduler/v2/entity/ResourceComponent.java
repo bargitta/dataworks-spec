@@ -25,6 +25,7 @@ public class ResourceComponent {
     private String currentDir;
     private String fullName;
     private String fileName;
+    private String resourceName;
     private int size;
     private String description;
     private boolean dirctory;
@@ -131,6 +132,14 @@ public class ResourceComponent {
 
     public List<ResourceComponent> getChildren() {
         return children;
+    }
+
+    public String getResourceName() {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
     }
 
     public void setChildren(List<ResourceComponent> children) {

@@ -123,7 +123,7 @@ public class DataWorksSpecPackageFileService extends AbstractPackageFileService<
 
         writeDataStudioDirectory(packageModelObject, targetWorkspace);
         writeDatasourceDirectory(packageModelObject, targetWorkspace);
-        if (Config.INSTANCE.isZipSpec()) {
+        if (Config.get().isZipSpec()) {
             ZipUtils.zipDir(targetTmp, targetPackageFile);
             log.info("zipped file: {}", targetPackageFile);
         } else {
@@ -206,7 +206,7 @@ public class DataWorksSpecPackageFileService extends AbstractPackageFileService<
                     this.writeWorkflow(w, targetWorkspace);
                 } catch (Exception e) {
                     log.error("write workflow error: ", e);
-                    if (!Config.INSTANCE.isSpecContinueWithError()) {
+                    if (!Config.get().isSpecContinueWithError()) {
                         throw new RuntimeException(e);
                     }
                 }

@@ -86,6 +86,7 @@ public class DataWorksDolphinschedulerTransformerApp extends BaseTransformerApp 
             }
             Config dwConfig = GsonUtils.fromJsonString(config, new TypeToken<Config>() {}.getType());
             Config.init(dwConfig);
+            log.info("config replaceMapping {}", JSONUtils.toJsonString(Config.get().getReplaceMapping()));
             return dataWorksTransformerConfig;
         } catch (Exception e) {
             throw new RuntimeException(e);

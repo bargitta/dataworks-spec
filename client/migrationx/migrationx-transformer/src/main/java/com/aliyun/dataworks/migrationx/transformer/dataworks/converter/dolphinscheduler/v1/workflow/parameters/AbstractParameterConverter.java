@@ -259,9 +259,9 @@ public abstract class AbstractParameterConverter<T extends AbstractParameters> {
         ListUtils.emptyIfNull(parameter.getResourceFilesList()).forEach(resourceInfo -> {
             SpecFileResource specFileResource = new SpecFileResource();
             specFileResource.setRuntimeResource(specNode.getRuntimeResource());
-            specFileResource.setName(getFileNameByPath(resourceInfo.getResourceName()));
+            specFileResource.setName(getFileNameByPath(resourceInfo.getName()));
             specFileResource.setType(SpecFileResourceTypeUtils.getResourceTypeBySuffix(specFileResource.getName()));
-            checkFileSameName(specFileResource.getName(), resourceInfo.getResourceName());
+            checkFileSameName(specFileResource.getName(), resourceInfo.getName());
             specNode.getFileResources().add(specFileResource);
         });
     }
@@ -331,7 +331,7 @@ public abstract class AbstractParameterConverter<T extends AbstractParameters> {
         if (Objects.isNull(specNode)) {
             return StringUtils.EMPTY;
         }
-        String defaultPath = StringUtils.defaultString(Config.INSTANCE.getBasePath(), StringUtils.EMPTY);
+        String defaultPath = StringUtils.defaultString(Config.get().getBasePath(), StringUtils.EMPTY);
         String workFlowPath = Optional.ofNullable(specWorkflow)
                 .map(SpecWorkflow::getName)
                 .orElse(StringUtils.EMPTY);
