@@ -19,6 +19,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwWorkflo
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.DolphinSchedulerConverterContext;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v3.nodes.parameters.DLCParameterConverter;
 import com.aliyun.migrationx.common.context.TransformerContext;
+import com.aliyun.migrationx.common.utils.Config;
 import com.aliyun.migrationx.common.utils.JSONUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -39,6 +40,7 @@ public class DLCParameterConverterTest {
 
     @Test
     public void testDLCParameterConverter() throws Exception {
+        Config.init();
         Process process = Mockito.mock(Process.class);
         InputStream inputStream = Mockito.mock(InputStream.class);
         String json = IOUtils.resourceToString("/json/dolphin/v3/dolphin_dlc_v3.json", StandardCharsets.UTF_8);

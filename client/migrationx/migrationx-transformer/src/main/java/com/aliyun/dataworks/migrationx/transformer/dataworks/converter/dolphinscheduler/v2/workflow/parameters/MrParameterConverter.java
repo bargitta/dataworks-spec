@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -38,7 +37,6 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.util
 import com.aliyun.dataworks.migrationx.domain.dataworks.utils.DataStudioCodeUtils;
 import com.aliyun.dataworks.migrationx.transformer.core.common.Constants;
 import com.aliyun.dataworks.migrationx.transformer.core.utils.EmrCodeUtils;
-import com.aliyun.migrationx.common.utils.BeanUtils;
 
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
@@ -87,19 +85,6 @@ public class MrParameterConverter extends AbstractParameterConverter<MapReducePa
     }
 
     public String convertCode(CodeProgramType codeProgramType, String taskName) {
-        List<ResourceInfo> resourceInfos = DolphinSchedulerV2Context.getContext().getResources();
-
-        Optional.ofNullable(parameter).map(MapReduceParameters::getMainJar)
-                .flatMap(mainJar -> ListUtils.emptyIfNull(resourceInfos)
-                        .stream().filter(res -> Objects.equals(res.getId(), mainJar.getId()))
-                        .findFirst()).ifPresent(res -> parameter.setMainJar(res));
-
-        ListUtils.emptyIfNull(Optional.ofNullable(parameter).map(MapReduceParameters::getResourceFilesList)
-                        .orElse(ListUtils.emptyIfNull(null)))
-                .forEach(res -> ListUtils.emptyIfNull(resourceInfos).stream()
-                        .filter(res1 -> Objects.equals(res1.getId(), res.getId()))
-                        .forEach(res1 -> BeanUtils.copyProperties(res1, res)));
-
         // convert to EMR_MR
         if (StringUtils.equalsIgnoreCase(CodeProgramType.EMR_MR.name(), codeProgramType.getName())) {
             String cmd = buildCommand(parameter);
@@ -162,18 +147,16 @@ public class MrParameterConverter extends AbstractParameterConverter<MapReducePa
         return command;
     }
 
-    public static List<String> buildArgs(MapReduceParameters param) {
+    public List<String> buildArgs(MapReduceParameters param) {
         List<String> args = new ArrayList<>();
 
         ResourceInfo mainJar = param.getMainJar();
         if (mainJar != null) {
-            DolphinSchedulerV2Context context = DolphinSchedulerV2Context.getContext();
-            String resourceName = CollectionUtils.emptyIfNull(context.getResources())
-                    .stream()
-                    .filter(r -> r.getId() == mainJar.getId())
-                    .findAny()
-                    .map(r -> r.getName())
-                    .orElse("");
+            String resourceName = mainJar.getResourceName();
+            if (resourceName == null) {
+                resourceName = getResourceNameById(mainJar.getId());
+            }
+
             String resource = DataStudioCodeUtils.addResourceReference(CodeProgramType.EMR_MR, "", Arrays.asList(resourceName));
             args.add(resource + resourceName);
         }

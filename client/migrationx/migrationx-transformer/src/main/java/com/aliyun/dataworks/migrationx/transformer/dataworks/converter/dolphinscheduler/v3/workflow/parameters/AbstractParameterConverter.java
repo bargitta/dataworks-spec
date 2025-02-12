@@ -344,7 +344,7 @@ public abstract class AbstractParameterConverter<T extends AbstractParameters> {
         if (Objects.isNull(specNode)) {
             return StringUtils.EMPTY;
         }
-        String defaultPath = StringUtils.defaultString(Config.INSTANCE.getBasePath(), StringUtils.EMPTY);
+        String defaultPath = StringUtils.defaultString(Config.get().getBasePath(), StringUtils.EMPTY);
         String workFlowPath = Optional.ofNullable(specWorkflow)
                 .map(SpecWorkflow::getName)
                 .orElse(StringUtils.EMPTY);

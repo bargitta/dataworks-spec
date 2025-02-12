@@ -41,7 +41,7 @@ public class TaskConverterFactoryV2 {
     public static AbstractParameterConverter create(
             Properties properties, SpecWorkflow specWorkflow,
             DagData processMeta, TaskDefinition taskDefinition) throws Throwable {
-        if (Config.INSTANCE.getTempTaskTypes().contains(taskDefinition.getTaskType())) {
+        if (Config.get().getTempTaskTypes().contains(taskDefinition.getTaskType())) {
             return new CustomParameterConverter(properties, specWorkflow, processMeta, taskDefinition);
         }
         TaskType taskType = TaskType.of(taskDefinition.getTaskType());

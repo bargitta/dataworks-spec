@@ -16,6 +16,7 @@
 package com.aliyun.dataworks.migrationx.domain.dataworks.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -34,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
  * @date 2021/09/10
  */
 public class DataStudioCodeUtils {
-    public static String addResourceReference(CodeProgramType type, String code, List<String> resources) {
+    public static String addResourceReference(CodeProgramType type, String code, Collection<String> resources) {
         if (type == null) {
             return code;
         }
@@ -56,7 +57,7 @@ public class DataStudioCodeUtils {
         }
     }
 
-    private static String addSqlResourceReference(String code, List<String> resources) {
+    private static String addSqlResourceReference(String code, Collection<String> resources) {
         if (CollectionUtils.isEmpty(resources)) {
             return code;
         }
@@ -68,7 +69,7 @@ public class DataStudioCodeUtils {
         return Joiner.on('\n').join(references, code);
     }
 
-    private static String addShellResourceReference(String code, List<String> resources) {
+    private static String addShellResourceReference(String code, Collection<String> resources) {
         if (CollectionUtils.isEmpty(resources)) {
             return code;
         }

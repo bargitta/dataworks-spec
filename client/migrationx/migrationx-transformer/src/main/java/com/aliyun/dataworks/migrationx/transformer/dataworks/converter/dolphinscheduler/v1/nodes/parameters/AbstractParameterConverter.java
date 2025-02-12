@@ -33,6 +33,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.TaskNodeConnect;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.UdfFunc;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.datasource.DataSource;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.entity.Property;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.entity.ResourceInfo;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.enums.DbType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.v139.enums.TaskType;
@@ -64,6 +65,7 @@ import com.aliyun.migrationx.common.utils.GsonUtils;
 import com.google.common.base.Joiner;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -192,9 +194,7 @@ public abstract class AbstractParameterConverter<Parameter extends AbstractParam
         output.setParseType(1);
         output.setNodeRef(dwNode);
         dwNode.setOutputs(new ArrayList<>(Collections.singletonList(output)));
-        dwNode.setParameter(Joiner.on(" ").join(ListUtils.emptyIfNull(parameter.getLocalParams()).stream()
-            .map(property -> property.getProp() + "=" + property.getValue())
-            .collect(Collectors.toList())));
+        dwNode.setParameter(getParameter());
 
         // inputs
         List<TaskNodeConnect> connects = processMeta.getProcessDefinitionConnects();
@@ -260,6 +260,31 @@ public abstract class AbstractParameterConverter<Parameter extends AbstractParam
                     });
             });
         return dwNode;
+    }
+
+    protected String getParameter() {
+        //parameters
+        List<String> paramList = new ArrayList<>();
+        //local param
+        if (CollectionUtils.isNotEmpty(parameter.getLocalParams())) {
+            List<String> localParamList = ListUtils.emptyIfNull(parameter.getLocalParams()).stream()
+                    .map(property -> property.getProp() + "=" + property.getValue())
+                    .collect(Collectors.toList());
+            paramList.addAll(localParamList);
+        }
+
+        //global param
+        List<Property> globalParams = processData.getGlobalParams();
+        if (CollectionUtils.isNotEmpty(globalParams)) {
+            List<String> globalList = globalParams.stream()
+                    .map(property -> property.getProp() + "=" + property.getValue())
+                    .filter(s -> !paramList.contains(s))
+                    .collect(Collectors.toList());
+            paramList.addAll(globalList);
+        }
+
+        String paraStr = Joiner.on(" ").join(paramList);
+        return paraStr;
     }
 
     public List<DwWorkflow> getWorkflowList() {

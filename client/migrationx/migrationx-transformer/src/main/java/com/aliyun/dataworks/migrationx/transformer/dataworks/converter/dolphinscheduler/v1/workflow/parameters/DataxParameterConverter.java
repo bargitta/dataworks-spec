@@ -103,6 +103,9 @@ public class DataxParameterConverter extends AbstractParameterConverter<DataxPar
             job.put("type", "job");
             job.put("version", "2.0");
             ArrayNode steps = buildDataxJobSteps();
+            if (steps == null) {
+                throw new RuntimeException("steps is null");
+            }
             job.putArray("steps").addAll(steps);
             job.set("setting", buildDataxJobSettingJson());
             json = job.toString();
@@ -117,7 +120,15 @@ public class DataxParameterConverter extends AbstractParameterConverter<DataxPar
 
     private ArrayNode buildDataxJobSteps() {
         DataSource source = getDataSource(parameter.getDataSource());
+        if (source == null) {
+            log.error("source {} is null", parameter.getDataSource());
+            return null;
+        }
         DataSource target = getDataSource(parameter.getDataTarget());
+        if (target == null) {
+            log.error("target {} is null", parameter.getDataTarget());
+            return null;
+        }
         Step reader = new Step();
         Step writer = new Step();
         reader.setName("Reader");

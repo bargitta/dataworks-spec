@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.aliyun.dataworks.common.spec.domain.dw.types.CalcEngineType;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
@@ -43,19 +44,32 @@ public class HiveCliParameterConverter extends AbstractParameterConverter<HiveCl
 
     @Override
     public List<DwNode> convertParameter() throws IOException {
-        String type = getConverterType();
-        if (!CodeProgramType.EMR_SHELL.name().equals(type)) {
+        String type;
+        DwNode dwNode = newDwNode(taskDefinition);
+        String executionType = parameter.getHiveCliTaskExecutionType();
+        if (HiveCliConstants.TYPE_SCRIPT.equals(executionType)) {
+            type = getScriptConverterType();
+        } else {
+            type = getConverterType();
+        }
+        if (!CodeProgramType.EMR_SHELL.name().equals(type) && !CodeProgramType.EMR_HIVE.name().equals(type)) {
             throw new RuntimeException("not support HIVECLI type with " + type);
         }
-        DwNode dwNode = newDwNode(taskDefinition);
         dwNode.setType(type);
-        String cmd = buildCommand(this.parameter, dwNode);
-        dwNode.setCode(cmd);
+        Map<String, String> resourceMap = handleResourcesReference();
+        List<String> resourceNames = new ArrayList<>();
+        if (resourceMap != null) {
+            resourceNames.addAll(resourceMap.values());
+        }
+        String code = buildCommand(this.parameter, dwNode, resourceNames);
+        code = replaceCode(code, dwNode);
+        code = replaceResourceFullName(resourceMap, code);
+        dwNode.setCode(code);
         dwNode.setCode(EmrCodeUtils.toEmrCode(dwNode));
         return Arrays.asList(dwNode);
     }
 
-    private String buildCommand(HiveCliParameters hiveCliParameters, DwNode dwNode) throws IOException {
+    private String buildCommand(HiveCliParameters hiveCliParameters, DwNode dwNode, List<String> resourceNames) throws IOException {
         final String type = hiveCliParameters.getHiveCliTaskExecutionType();
 
         String resName = "";
@@ -64,15 +78,18 @@ public class HiveCliParameterConverter extends AbstractParameterConverter<HiveCl
             if (resourceInfos != null && resourceInfos.size() > 0) {
                 resName = resourceInfos.get(0).getResourceName();
             }
+            resourceNames.add(resName);
+        } else if (HiveCliConstants.TYPE_SCRIPT.equals(type)) {
+            String sqlContent = hiveCliParameters.getHiveSqlScript();
+            return sqlContent;
         } else {
             String sqlContent = hiveCliParameters.getHiveSqlScript();
             resName = generateSqlScriptFile(sqlContent);
+            resourceNames.add(resName);
         }
 
         final List<String> args = new ArrayList<>();
-        List<String> resources = new ArrayList<>();
-        resources.add(resName);
-        String resourceRef = DataStudioCodeUtils.addResourceReference(CodeProgramType.valueOf(dwNode.getType()), "", resources);
+        String resourceRef = DataStudioCodeUtils.addResourceReference(CodeProgramType.valueOf(dwNode.getType()), "", resourceNames);
         args.add(resourceRef + HiveCliConstants.HIVE_CLI_EXECUTE_FILE);
         args.add(resName);
         final String hiveCliOptions = hiveCliParameters.getHiveCliOptions();
@@ -81,7 +98,6 @@ public class HiveCliParameterConverter extends AbstractParameterConverter<HiveCl
         }
 
         String command = String.join(" ", args);
-
         return command;
     }
 
@@ -113,8 +129,14 @@ public class HiveCliParameterConverter extends AbstractParameterConverter<HiveCl
     }
 
     private String getConverterType() {
-        String convertType = properties.getProperty(Constants.CONVERTER_TARGET_SHELL_NODE_TYPE_AS);
+        String convertType = properties.getProperty(Constants.CONVERTER_TARGET_HIVE_CLI_NODE_TYPE_AS);
         String defaultConvertType = CodeProgramType.EMR_SHELL.name();
+        return getConverterType(convertType, defaultConvertType);
+    }
+
+    private String getScriptConverterType() {
+        String convertType = properties.getProperty(Constants.CONVERTER_TARGET_HIVE_CLI_NODE_TYPE_AS);
+        String defaultConvertType = CodeProgramType.EMR_HIVE.name();
         return getConverterType(convertType, defaultConvertType);
     }
 }

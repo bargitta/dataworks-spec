@@ -71,6 +71,7 @@ public class Constants {
     public static final String CONVERTER_TARGET_ENGINE_DATASOURCE_TYPE
             = "workflow.converter.target.engine.datasource.type";
     public static final String CONVERTER_TARGET_SHELL_NODE_TYPE_AS = "workflow.converter.shellNodeType";
+    public static final String CONVERTER_TARGET_HIVE_CLI_NODE_TYPE_AS = "workflow.converter.hiveCliNodeType";
     public static final String CONVERTER_TARGET_PYTHON_NODE_TYPE_AS = "workflow.converter.pythonNodeType";
     public static final String UNDEFINED_VARIABLE_VALUE = "UNDEFINED_VARIABLE_VALUE";
     public static final String OBJECT_CONFLICT_RESOLVE_STRATEGY = "object.conflict.resolve.strategy";

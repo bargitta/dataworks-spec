@@ -86,6 +86,7 @@ public class MrParameterConverter extends AbstractParameterConverter<MapReducePa
         // convert to EMR_MR
         if (StringUtils.equalsIgnoreCase(CodeProgramType.EMR_MR.name(), dwNode.getType())) {
             String cmd = buildCommand(parameter);
+            cmd = replaceCode(cmd, dwNode);
             dwNode.setCode(cmd);
             dwNode.setCode(EmrCodeUtils.toEmrCode(dwNode));
         } else if (StringUtils.equalsIgnoreCase(CodeProgramType.ODPS_MR.name(), dwNode.getType())) {
@@ -93,13 +94,10 @@ public class MrParameterConverter extends AbstractParameterConverter<MapReducePa
             List<String> codeLines = new ArrayList<>();
             List<String> resources = new ArrayList<>();
             if (mainJar != null) {
-                DolphinSchedulerV2Context context = DolphinSchedulerV2Context.getContext();
-                String resourceName = CollectionUtils.emptyIfNull(context.getResources())
-                        .stream()
-                        .filter(r -> r.getId() == mainJar.getId())
-                        .findAny()
-                        .map(r -> r.getName())
-                        .orElse("");
+                String resourceName = mainJar.getResourceName();
+                if (resourceName == null) {
+                    resourceName = getResourceNameById(mainJar.getId());
+                }
                 resources.add(resourceName);
                 codeLines.add(DataStudioCodeUtils.addResourceReference(CodeProgramType.valueOf(dwNode.getType()), "", resources));
             }
@@ -115,8 +113,9 @@ public class MrParameterConverter extends AbstractParameterConverter<MapReducePa
                     Optional.ofNullable(parameter.getOthers()).orElse("")
             );
             codeLines.add(command);
-
-            dwNode.setCode(Joiner.on("\n").join(codeLines));
+            String code = Joiner.on("\n").join(codeLines);
+            code = replaceCode(code, dwNode);
+            dwNode.setCode(code);
             dwNode.setCode(EmrCodeUtils.toEmrCode(dwNode));
             EmrCode emrCode = EmrCodeUtils.asEmrCode(dwNode);
             Optional.ofNullable(emrCode).map(EmrCode::getLauncher)

@@ -20,6 +20,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -39,6 +41,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.Quer
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.QueryUdfFuncListByPaginateRequest;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v1.Response;
 import com.aliyun.migrationx.common.http.HttpClientUtil;
+import com.aliyun.migrationx.common.utils.Config;
 import com.aliyun.migrationx.common.utils.GsonUtils;
 
 import com.google.common.base.Joiner;
@@ -122,9 +125,10 @@ public class DolphinschedulerApiV3Service implements DolphinSchedulerApi {
             throws Exception {
         HttpClientUtil client = new HttpClientUtil();
         String url = String.format("resources?type=%s&fullName=%s&tenantCode=&searchVal=&pageNo=%s&pageSize=%s&id=%s",
-                request.getType(), request.getFullName() == null ? "" : request.getFullName(), pageNum, pageSize, request.getDirId());
+                request.getType(), request.getFullName() == null ? "" : URLEncoder.encode(request.getFullName()), pageNum, pageSize, request.getDirId());
         HttpGet httpGet = newHttpGet(url);
         String responseStr = client.executeAndGet(httpGet);
+        log.info("response {}", responseStr);
         Response<JsonObject> response = GsonUtils.fromJsonString(responseStr, new TypeToken<Response<JsonObject>>() {}.getType());
         if (response.getCode() > 0) {
             log.error("response error {}", responseStr);
@@ -138,26 +142,21 @@ public class DolphinschedulerApiV3Service implements DolphinSchedulerApi {
         return data.get("totalList").getAsJsonArray().asList();
     }
 
-    public String getSuggestedFileName(Header contentDispositionHeader) {
-        String value = contentDispositionHeader.getValue();
-        return Arrays.stream(StringUtils.split(value, ";"))
-                .map(StringUtils::trim)
-                .filter(token -> StringUtils.startsWithIgnoreCase(token, "filename="))
-                .findFirst()
-                .map(fileNamePart -> StringUtils.replace(fileNamePart, "filename=", ""))
-                .map(fileName -> RegExUtils.replaceAll(fileName, "^\"", ""))
-                .map(fileName -> RegExUtils.replaceAll(fileName, "\"$", ""))
-                .orElse(null);
-    }
-
     @Override
     public File downloadResource(DownloadResourceRequest request) throws Exception {
+        String url;
+        if (Config.get().isVersion32()) {
+            url = String.format("resources/download?fullName=%s", URLEncoder.encode(request.getFullName()));
+        } else {
+            url = String.format("resources/%d/download", request.getId());
+        }
         HttpClientUtil client = new HttpClientUtil();
-        String url = String.format("resources/download?fullName=%s", request.getFullName());
+        log.info("download resource url: {}", url);
         HttpGet httpGet = newHttpGet(url);
         HttpResponse resp = client.executeAndGetHttpResponse(httpGet);
         if (HttpStatus.SC_OK != resp.getStatusLine().getStatusCode()) {
-            throw new RuntimeException("download file " + request.getFullName() + " error with status " + resp.getStatusLine());
+            log.error("response error {}, fullname: {}, url: {}", resp.getStatusLine(), request.getFullName(), url);
+            throw new RuntimeException("download file " + url + " error with status " + resp.getStatusLine());
         }
         InputStream inputStream = resp.getEntity().getContent();
         String fileName = Stream.of(resp.getAllHeaders())
@@ -178,6 +177,19 @@ public class DolphinschedulerApiV3Service implements DolphinSchedulerApi {
         FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
         IOUtils.copy(inputStream, fileOutputStream);
         return tmpFile;
+    }
+
+    private String getSuggestedFileName(Header contentDispositionHeader) {
+        String value = contentDispositionHeader.getValue();
+        return Arrays.stream(StringUtils.split(value, ";"))
+                .map(StringUtils::trim)
+                .filter(token -> StringUtils.startsWithIgnoreCase(token, "filename="))
+                .findFirst()
+                .map(fileNamePart -> StringUtils.replace(fileNamePart, "filename=", ""))
+                .map(fileName -> RegExUtils.replaceAll(fileName, "^\"", ""))
+                .map(fileName -> RegExUtils.replaceAll(fileName, "\"$", ""))
+                .map(URLDecoder::decode)
+                .orElse(null);
     }
 
     @Override

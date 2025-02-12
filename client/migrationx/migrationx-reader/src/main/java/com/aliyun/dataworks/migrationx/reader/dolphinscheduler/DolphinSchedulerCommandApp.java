@@ -65,7 +65,8 @@ public class DolphinSchedulerCommandApp extends CommandApp {
             String file = commandLine.getOptionValue("f", "output");
 
             DolphinSchedulerReader exporter = new DolphinSchedulerReader(
-                    endpoint, token, version, pair.getLeft(), pair.getRight(), new File(new File(file).getAbsolutePath()));
+                    endpoint, token, version, pair.getLeft(), pair.getRight(),
+                    new File(new File(file).getAbsolutePath()));
             String sr = commandLine.getOptionValue(OPT_SKIP_RESOURCES, "true");
             exporter.setSkipResources(Boolean.parseBoolean(sr));
             File exportedFile = exporter.export();

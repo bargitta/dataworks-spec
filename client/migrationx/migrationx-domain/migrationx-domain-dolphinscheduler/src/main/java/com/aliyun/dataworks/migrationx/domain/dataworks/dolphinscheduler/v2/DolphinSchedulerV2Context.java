@@ -22,8 +22,8 @@ import java.util.Map;
 
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.Project;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.UdfFunc;
-import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.process.ResourceInfo;
 import com.aliyun.migrationx.common.context.TransformerContext;
 
 import org.apache.commons.collections4.ListUtils;
@@ -34,7 +34,7 @@ public class DolphinSchedulerV2Context {
     private List<Project> projects;
 
     private List<DataSource> dataSources;
-    private List<ResourceInfo> resources;
+    private List<ResourceComponent> resources;
     private List<UdfFunc> udfFuncs;
 
     private List<DagData> dagDatas;
@@ -71,7 +71,7 @@ public class DolphinSchedulerV2Context {
     }
 
     public static void initContext(List<Project> projects, List<DagData> dagDatas, List<DataSource> dataSources,
-            List<ResourceInfo> resources, List<UdfFunc> udfFuncs) {
+            List<ResourceComponent> resources, List<UdfFunc> udfFuncs) {
         DolphinSchedulerV2Context context = new DolphinSchedulerV2Context();
         context.projects = projects;
         context.dagDatas = dagDatas;
@@ -158,11 +158,11 @@ public class DolphinSchedulerV2Context {
         this.dataSources = dataSources;
     }
 
-    public List<ResourceInfo> getResources() {
+    public List<ResourceComponent> getResources() {
         return resources;
     }
 
-    public void setResources(List<ResourceInfo> resources) {
+    public void setResources(List<ResourceComponent> resources) {
         this.resources = resources;
     }
 

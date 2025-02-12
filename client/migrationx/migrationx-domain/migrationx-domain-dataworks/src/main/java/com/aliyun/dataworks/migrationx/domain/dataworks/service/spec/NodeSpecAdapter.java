@@ -105,7 +105,8 @@ public class NodeSpecAdapter extends SpecAdapter<DwNodeEntity, SpecNode> {
                 case MANUAL_WORKFLOW: {
                     dataWorksWorkflowSpec.setId(Optional.ofNullable(dwNode.getBizId()).filter(id -> id > 0).map(String::valueOf).orElse(null));
                     dataWorksWorkflowSpec.setName(dwNode.getBizName());
-                    return SpecKind.MANUAL_WORKFLOW.getLabel();
+                    // if bizId is not valid, return MANUAL_NODE kind
+                    return StringUtils.isBlank(dataWorksWorkflowSpec.getId()) ? SpecKind.MANUAL_NODE.getLabel() : SpecKind.MANUAL_WORKFLOW.getLabel();
                 }
                 case COMPONENT:
                     return SpecKind.COMPONENT.getLabel();

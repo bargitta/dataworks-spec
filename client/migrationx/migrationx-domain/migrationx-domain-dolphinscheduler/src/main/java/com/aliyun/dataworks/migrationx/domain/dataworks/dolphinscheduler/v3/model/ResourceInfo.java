@@ -31,4 +31,9 @@ public class ResourceInfo {
     private String resourceName;
 
     private String res;
+
+    /**
+     * temp full name
+     */
+    private String fullName;
 }

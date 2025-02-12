@@ -29,7 +29,7 @@ public class DolphinSchedulerConverterFilter {
     private final boolean skip;
 
     public DolphinSchedulerConverterFilter() {
-        this.filters = Config.INSTANCE.getFilterTasks();
+        this.filters = Config.get().getFilterTasks();
         if (CollectionUtils.isEmpty(filters) || (
                 filters.size() == 1 && filters.get(0).equals("*"))) {
             skip = true;
@@ -39,13 +39,15 @@ public class DolphinSchedulerConverterFilter {
     }
 
     /**
+     * only tasks in filters to converter
      * 如果含有*，所有的都需要转换
      * 如果还有project.*,project下面全部转换
      * 如果还有project.process.* ,process 下面全部转换
      * 如果含有project.process.task, 单向匹配
      */
-    public boolean filter(String projectName, String processName, String taskName) {
+    public boolean filterTasks(String projectName, String processName, String taskName) {
         if (skip) {
+            //if all, filter nothing
             return true;
         }
         String taskIdentity = String.format("%s.%s.%s", projectName, processName, taskName);

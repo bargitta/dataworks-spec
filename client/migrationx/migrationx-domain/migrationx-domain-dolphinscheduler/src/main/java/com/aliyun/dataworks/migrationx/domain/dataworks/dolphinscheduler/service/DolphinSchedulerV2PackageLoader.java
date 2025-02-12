@@ -32,8 +32,8 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DagD
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.DolphinSchedulerV2Context;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.Project;
+import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.ResourceComponent;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.entity.UdfFunc;
-import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v2.process.ResourceInfo;
 import com.aliyun.migrationx.common.utils.JSONUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -48,14 +48,14 @@ import org.apache.commons.io.FileUtils;
  * @date 2022/10/24
  */
 @Slf4j
-public class DolphinSchedulerV2PackageLoader extends DolphinSchedulerPackageLoader<Project, DagData, DataSource, ResourceInfo, UdfFunc> {
-    private final DolphinSchedulerPackage<Project, DagData, DataSource, ResourceInfo, UdfFunc>
+public class DolphinSchedulerV2PackageLoader extends DolphinSchedulerPackageLoader<Project, DagData, DataSource, ResourceComponent, UdfFunc> {
+    private final DolphinSchedulerPackage<Project, DagData, DataSource, ResourceComponent, UdfFunc>
             dolphinSchedulerPackage = new DolphinSchedulerPackage<>();
 
     public DolphinSchedulerV2PackageLoader(File packageRoot) {super(packageRoot);}
 
     @Override
-    public DolphinSchedulerPackage<Project, DagData, DataSource, ResourceInfo, UdfFunc> getDolphinSchedulerPackage() {
+    public DolphinSchedulerPackage<Project, DagData, DataSource, ResourceComponent, UdfFunc> getDolphinSchedulerPackage() {
         return dolphinSchedulerPackage;
     }
 
@@ -81,7 +81,7 @@ public class DolphinSchedulerV2PackageLoader extends DolphinSchedulerPackageLoad
         dolphinSchedulerPackage.setDatasources(
                 readJsonFiles(new File(packageRoot, DATASOURCE), new TypeToken<List<DataSource>>() {}));
         dolphinSchedulerPackage.setResources(
-                readJsonFiles(new File(packageRoot, RESOURCE), new TypeToken<List<ResourceInfo>>() {}));
+                readJsonFiles(new File(packageRoot, RESOURCE), new TypeToken<List<ResourceComponent>>() {}));
         dolphinSchedulerPackage.setUdfFuncs(
                 readJsonFiles(new File(packageRoot, UDF_FUNCTION), new TypeToken<List<UdfFunc>>() {}));
 

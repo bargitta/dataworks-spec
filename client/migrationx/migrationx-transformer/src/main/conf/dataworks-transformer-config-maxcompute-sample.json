@@ -1,6 +1,11 @@
 {
   "format": "SPEC",
   "locale": "zh_CN",
+  "skipUnSupportType": true,
+  "transformContinueWithError": true,
+  "specContinueWithError": true,
+  "filterTasks": [
+  ],
   "settings": {
     "workflow.converter.shellNodeType": "DIDE_SHELL",
     "workflow.converter.commandSqlAs": "DIDE_SHELL",

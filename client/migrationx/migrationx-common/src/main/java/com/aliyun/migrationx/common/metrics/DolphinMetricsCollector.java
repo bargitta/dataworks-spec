@@ -49,6 +49,8 @@ public class DolphinMetricsCollector implements MetricsCollector {
     private final Set<Metrics> failedDolphinSchedulerTasks = new HashSet<>();
     private final Set<Metrics> skippedDolphinSchedulerTasks = new HashSet<>();
     private final Set<Metrics> tempDolphinSchedulerTasks = new HashSet<>();
+    private final Set<Metrics> unSupportedDolphinSchedulerTasks = new HashSet<>();
+    private final Map<String, Integer> typeCounter = new HashMap<>();
 
     private String transformerType;
     private Date startTime;
@@ -158,6 +160,21 @@ public class DolphinMetricsCollector implements MetricsCollector {
         tempDolphinSchedulerTasks.add(metrics);
     }
 
+    @Override
+    public void markUnSupportedSpecProcess(Metrics metrics) {
+        unSupportedDolphinSchedulerTasks.add(metrics);
+    }
+
+    @Override
+    public void incrementType(String taskType) {
+        Integer count = typeCounter.get(taskType);
+        if (count == null) {
+            typeCounter.put(taskType, 1);
+        } else {
+            typeCounter.put(taskType, count + 1);
+        }
+    }
+
     private Metrics findMetrics(Metrics tmp) {
         String workflowName = tmp.getWorkflowName();
         String nodeName = tmp.getDwName();
@@ -176,21 +193,27 @@ public class DolphinMetricsCollector implements MetricsCollector {
     }
 
     @Override
-    public void finishCollector(Consumer<Summary> c) {
+    public void finishCollector(Consumer<Object> c) {
         Summary summary = new Summary();
         summary.setStartTime(startTime);
         summary.setEndTime(new Date());
         summary.setTransformerType(transformerType);
         summary.setType(CollectorType.DolphinScheduler.name());
-        summary.setSuccess(toSummary(successDolphinSchedulerTasks));
-        summary.setFailed(toSummary(failedDolphinSchedulerTasks));
-        summary.setSkipped(toSummary(skippedDolphinSchedulerTasks));
-        summary.setTemp(toSummary(tempDolphinSchedulerTasks));
         summary.setTotalSuccess(successDolphinSchedulerTasks.size());
         summary.setTotalFailed(failedDolphinSchedulerTasks.size());
         summary.setTotalSkipped(skippedDolphinSchedulerTasks.size());
         summary.setTotalTemp(tempDolphinSchedulerTasks.size());
+        summary.setTotalUnSupported(unSupportedDolphinSchedulerTasks.size());
         c.accept(summary);
+
+        Detail detail = new Detail();
+        detail.setSuccess(toSummary(successDolphinSchedulerTasks));
+        detail.setFailed(toSummary(failedDolphinSchedulerTasks));
+        detail.setSkipped(toSummary(skippedDolphinSchedulerTasks));
+        detail.setTemp(toSummary(tempDolphinSchedulerTasks));
+        detail.setUnSupported(toSummary(unSupportedDolphinSchedulerTasks));
+        detail.setTypeCounter(typeCounter);
+        c.accept(detail);
     }
 
     private List<Project> toSummary(Set<Metrics> metricsList) {
@@ -219,6 +242,7 @@ public class DolphinMetricsCollector implements MetricsCollector {
                 task = new Task();
                 task.setTaskCode(dolphinMetrics.getTaskCode());
                 task.setTaskName(dolphinMetrics.getTaskName());
+                task.setTaskType(dolphinMetrics.getTaskType());
                 taskMap.put(dolphinMetrics.getTaskCode(), task);
                 process.getTasks().add(task);
             }
@@ -249,10 +273,17 @@ public class DolphinMetricsCollector implements MetricsCollector {
         private int totalFailed;
         private int totalSkipped;
         private int totalTemp;
+        private int totalUnSupported;
+    }
+
+    @Data
+    public static class Detail {
         private List<Project> success;
         private List<Project> failed;
         private List<Project> skipped;
         private List<Project> temp;
+        private List<Project> unSupported;
+        private Map<String, Integer> typeCounter;
     }
 
     @Data
@@ -273,5 +304,6 @@ public class DolphinMetricsCollector implements MetricsCollector {
     public static class Task {
         private String taskName;
         private Long taskCode;
+        private String taskType;
     }
 }

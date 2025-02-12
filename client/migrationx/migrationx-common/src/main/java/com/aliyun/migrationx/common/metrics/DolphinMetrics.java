@@ -15,7 +15,6 @@
 
 package com.aliyun.migrationx.common.metrics;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

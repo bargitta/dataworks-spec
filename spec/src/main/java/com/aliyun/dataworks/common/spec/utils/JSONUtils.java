@@ -138,7 +138,7 @@ public class JSONUtils {
         try {
             return objectMapper.readValue(json, clazz);
         } catch (Exception e) {
-            logger.error("parse object exception, json: {}, className: {}", json, clazz.getCanonicalName(), e);
+            logger.warn("parse object exception, json: {}, className: {}", json, clazz.getCanonicalName(), e);
         }
         return null;
     }

@@ -18,13 +18,14 @@ package com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphins
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.aliyun.dataworks.common.spec.domain.dw.codemodel.OdpsSparkCode;
 import com.aliyun.dataworks.common.spec.domain.dw.types.CodeProgramType;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.utils.ArgsUtils;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.DagData;
-import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.DolphinSchedulerV3Context;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.TaskDefinition;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.DataSource;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.entity.Project;
@@ -34,6 +35,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.mode
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.spark.SparkConstants;
 import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.v3.task.spark.SparkParameters;
 import com.aliyun.dataworks.migrationx.domain.dataworks.objects.entity.DwNode;
+import com.aliyun.dataworks.migrationx.domain.dataworks.utils.DataStudioCodeUtils;
 import com.aliyun.dataworks.migrationx.transformer.core.common.Constants;
 import com.aliyun.dataworks.migrationx.transformer.core.utils.EmrCodeUtils;
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.DolphinSchedulerConverterContext;
@@ -56,37 +58,46 @@ public class SparkParameterConverter extends AbstractParameterConverter<SparkPar
         String type = getSparkConverterType();
         dwNode.setType(CodeProgramType.of(type).name());
 
+        Map<String, String> resourcePair = handleResourcesReference();
+        List<String> resourceNames = new ArrayList<>();
+        if (resourcePair != null) {
+            resourceNames.addAll(resourcePair.values());
+        }
         if (CodeProgramType.EMR_SPARK.equals(CodeProgramType.of(type))) {
-            List<String> cmd = populateSparkOptions(parameter);
-            dwNode.setCode(String.join(" ", cmd));
+            List<String> cmd = populateSparkOptions(type, resourceNames);
+            String code = String.join(" ", cmd);
+            code = replaceCode(code, dwNode);
+            code = replaceResourceFullName(resourcePair, code);
+            dwNode.setCode(code);
             dwNode.setCode(EmrCodeUtils.toEmrCode(dwNode));
         } else if (CodeProgramType.ODPS_SPARK.equals(CodeProgramType.of(type))) {
-            OdpsSparkCode odpsSparkCode = populateSparkOdpsCode();
-            dwNode.setCode(odpsSparkCode.toString());
+            OdpsSparkCode odpsSparkCode = populateSparkOdpsCode(resourceNames);
+            String code = odpsSparkCode.toString();
+            code = replaceCode(code, dwNode);
+            code = replaceResourceFullName(resourcePair, code);
+            dwNode.setCode(code);
         }
+
 
         return Arrays.asList(dwNode);
     }
 
-    private List<String> populateSparkOptions(SparkParameters sparkParameters) {
+    private List<String> populateSparkOptions(String codeType, Collection<String> resourceNames) {
         List<String> args = new ArrayList<>();
-
+        SparkParameters sparkParameters = this.parameter;
         ProgramType programType = sparkParameters.getProgramType();
         ResourceInfo mainJar = sparkParameters.getMainJar();
         if (programType != ProgramType.SQL) {
-            String resource = mainJar.getResourceName();
-            if (StringUtils.isEmpty(resource)) {
-                resource = getResourceName(mainJar.getId());
+            String resourceName = mainJar.getResourceName();
+            if (StringUtils.isEmpty(resourceName)) {
+                resourceName = getResourceNameById(mainJar.getId());
             }
 
-            if (resource != null) {
-                String[] resources = resource.split("/");
-                if (resources.length > 0) {
-                    resource = resources[resources.length - 1];
-                }
-                mainJar.setResourceName(resource);
-                String dwResource = "##@resource_reference{\"" + resource + "\"} \n";
-                args.add(dwResource + SparkConstants.SPARK_SUBMIT_COMMAND);
+            if (resourceName != null) {
+                resourceNames.add(resourceName);
+                mainJar.setResourceName(resourceName);
+                //String dwResource = "##@resource_reference{\"" + resourceName + "\"} \n";
+                args.add(SparkConstants.SPARK_SUBMIT_COMMAND);
             } else {
                 args.add(SparkConstants.SPARK_SUBMIT_COMMAND);
             }
@@ -94,6 +105,8 @@ public class SparkParameterConverter extends AbstractParameterConverter<SparkPar
             args.add(SparkConstants.SPARK_SUBMIT_COMMAND);
         }
 
+        String ref = DataStudioCodeUtils.addResourceReference(CodeProgramType.of(codeType), "", resourceNames);
+        args.add(0, ref);
         String deployMode = StringUtils.isNotEmpty(sparkParameters.getDeployMode()) ? sparkParameters.getDeployMode()
                 : SparkConstants.DEPLOY_MODE_LOCAL;
 
@@ -147,7 +160,7 @@ public class SparkParameterConverter extends AbstractParameterConverter<SparkPar
         return args;
     }
 
-    private OdpsSparkCode populateSparkOdpsCode() {
+    private OdpsSparkCode populateSparkOdpsCode(Collection<String> resourceNames) {
         OdpsSparkCode odpsSparkCode = new OdpsSparkCode();
         odpsSparkCode.setResourceReferences(new ArrayList<>());
         odpsSparkCode.setSparkJson(new OdpsSparkCode.CodeJson());
@@ -155,18 +168,16 @@ public class SparkParameterConverter extends AbstractParameterConverter<SparkPar
         ResourceInfo mainJar = parameter.getMainJar();
         String resource = mainJar.getResourceName();
         if (StringUtils.isEmpty(resource)) {
-            resource = getResourceName(mainJar.getId());
+            resource = getResourceNameById(mainJar.getId());
         }
 
         if (resource != null) {
-            String[] resources = resource.split("/");
-            if (resources.length > 0) {
-                resource = resources[resources.length - 1];
-            }
             mainJar.setResourceName(resource);
-            //String dwResource = "##@resource_reference{\"" + resource + "\"} \n";
             odpsSparkCode.getResourceReferences().add(resource);
             odpsSparkCode.getSparkJson().setMainJar(resource);
+        }
+        if (CollectionUtils.isNotEmpty(resourceNames)) {
+            odpsSparkCode.getResourceReferences().addAll(resourceNames);
         }
         String mainClass = parameter.getMainClass();
         odpsSparkCode.getSparkJson().setMainClass(mainClass);
@@ -233,28 +244,6 @@ public class SparkParameterConverter extends AbstractParameterConverter<SparkPar
         if (StringUtils.isNotEmpty(executorMemory)) {
             args.add(String.format("spark.executor.memory=%s", executorMemory));
         }
-    }
-
-    private String getResourceName(Integer id) {
-        if (id == null) {
-            return null;
-        }
-        DolphinSchedulerV3Context context = DolphinSchedulerV3Context.getContext();
-        return CollectionUtils.emptyIfNull(context.getResources())
-                .stream()
-                .filter(r -> r.getId() == id)
-                .findAny()
-                .map(r -> {
-                    String name = r.getName();
-                    if (StringUtils.isEmpty(name)) {
-                        name = r.getFileName();
-                    }
-                    if (StringUtils.isEmpty(name)) {
-                        name = r.getFullName();
-                    }
-                    return name;
-                })
-                .orElse(null);
     }
 
     private String getSparkConverterType() {

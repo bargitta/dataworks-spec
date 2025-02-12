@@ -2,8 +2,6 @@ package com.aliyun.migrationx.common.metrics;
 
 import java.util.function.Consumer;
 
-import com.aliyun.migrationx.common.metrics.DolphinMetricsCollector.Summary;
-
 /**
  * default implement
  * @author 聿剑
@@ -56,6 +54,16 @@ public class DefaultMetricCollector implements MetricsCollector{
     }
 
     @Override
+    public void markUnSupportedSpecProcess(Metrics metrics) {
+
+    }
+
+    @Override
+    public void incrementType(String taskType) {
+
+    }
+
+    @Override
     public void markSuccessSpecProcess(String workflowName, String nodeName) {
 
     }
@@ -81,7 +89,7 @@ public class DefaultMetricCollector implements MetricsCollector{
     }
 
     @Override
-    public void finishCollector(Consumer<Summary> c) {
+    public void finishCollector(Consumer<Object> c) {
 
     }
 

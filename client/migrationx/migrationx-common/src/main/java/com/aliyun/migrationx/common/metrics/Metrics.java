@@ -15,6 +15,8 @@
 
 package com.aliyun.migrationx.common.metrics;
 
+import java.util.Objects;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,4 +36,14 @@ public class Metrics {
     protected Long projectId;
     protected String region;
     protected String errorMsg;
+
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {return false;}
+        Metrics metrics = (Metrics) o;
+        return Objects.equals(dwType, metrics.dwType) && Objects.equals(dwName, metrics.dwName) && Objects.equals(workflowName, metrics.workflowName);
+    }
+
+    public int hashCode() {
+        return Objects.hash(dwType, dwName, workflowName);
+    }
 }

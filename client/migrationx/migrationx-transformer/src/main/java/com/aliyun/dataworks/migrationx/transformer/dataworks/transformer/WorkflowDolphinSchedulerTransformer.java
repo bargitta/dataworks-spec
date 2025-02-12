@@ -33,6 +33,7 @@ import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinsc
 import com.aliyun.dataworks.migrationx.transformer.dataworks.converter.dolphinscheduler.v3.workflow.DolphinSchedulerV3WorkflowConverter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 @Slf4j
 public class WorkflowDolphinSchedulerTransformer extends DataWorksDolphinSchedulerTransformer {
@@ -79,11 +80,7 @@ public class WorkflowDolphinSchedulerTransformer extends DataWorksDolphinSchedul
     public void doWrite(File target) {
         log.info("write workflow package to {}", target.getAbsolutePath());
         //clear files
-        if (target.exists()) {
-            clearDir(target);
-        } else {
-            target.mkdirs();
-        }
+        clearDir(target);
 
         for (Specification<DataWorksWorkflowSpec> specification : specifications) {
             DataWorksWorkflowSpec spec = specification.getSpec();
@@ -105,21 +102,13 @@ public class WorkflowDolphinSchedulerTransformer extends DataWorksDolphinSchedul
     }
 
     private void clearDir(File target) {
-        if (target.isDirectory()) {
-            File[] files = target.listFiles();
-            if (files != null && files.length > 0) {
-                for (File file : target.listFiles()) {
-                    clearDir(file);
-                }
-            } else {
-                if (!target.delete()) {
-                    throw new RuntimeException("delete file " + target.getAbsolutePath() + " failed");
-                }
-            }
-        } else {
-            if (!target.delete()) {
+        if (target.exists()) {
+            try {
+                FileUtils.deleteDirectory(target);
+            } catch (Exception e) {
                 throw new RuntimeException("delete file " + target.getAbsolutePath() + " failed");
             }
         }
+        target.mkdirs();
     }
 }

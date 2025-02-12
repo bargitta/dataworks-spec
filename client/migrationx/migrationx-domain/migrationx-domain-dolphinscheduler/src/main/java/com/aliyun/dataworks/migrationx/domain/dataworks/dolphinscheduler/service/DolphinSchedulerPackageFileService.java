@@ -22,6 +22,7 @@ import com.aliyun.dataworks.migrationx.domain.dataworks.dolphinscheduler.Dolphin
 import com.aliyun.dataworks.migrationx.domain.dataworks.standard.service.AbstractPackageFileService;
 import com.aliyun.migrationx.common.exception.BizException;
 import com.aliyun.migrationx.common.exception.ErrorCode;
+import com.aliyun.migrationx.common.utils.Config;
 import com.aliyun.migrationx.common.utils.ZipUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ public class DolphinSchedulerPackageFileService extends AbstractPackageFileServi
         } else {
             unzippedDir = dolphinSchedulerPackage.getPackageFile();
         }
-
+        Config.get().setSource(unzippedDir.getAbsolutePath());
         DolphinSchedulerPackageLoader loader = DolphinSchedulerPackageLoader.create(unzippedDir);
         loader.loadPackage();
         this.dolphinSchedulerPackage = loader.getDolphinSchedulerPackage();
