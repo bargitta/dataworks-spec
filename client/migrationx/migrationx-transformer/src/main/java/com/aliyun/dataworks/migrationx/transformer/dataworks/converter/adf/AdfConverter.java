@@ -62,7 +62,6 @@ public class AdfConverter {
         SpecWorkflow flow = new SpecWorkflow();
         String flowId = generateId(pipeline.getName());
         flow.setId(flowId);
-        flow.setCitable(true);
         flow.setName(getValidName(pipeline.getName()));
         flow.setScript(getFlowSpecScript(pipeline));
         flow.setOutputs(getOutput(flowId, pipeline.getName())); // 本workflow的输出，供其他flow做依赖
