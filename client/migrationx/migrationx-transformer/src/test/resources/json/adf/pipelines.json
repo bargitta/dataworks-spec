@@ -6,72 +6,6 @@
     "properties": {
       "activities": [
         {
-          "name": "Web1",
-          "description": "this is first activity",
-          "type": "WebActivity",
-          "dependsOn": [],
-          "policy": {
-            "timeout": "0.12:00:00",
-            "retry": 0,
-            "retryIntervalInSeconds": 30,
-            "secureOutput": false,
-            "secureInput": false
-          },
-          "userProperties": [],
-          "typeProperties": {
-            "method": "GET",
-            "headers": {},
-            "url": "http://baidu.com"
-          }
-        },
-        {
-          "name": "Web2",
-          "description": "this is web 2 activity",
-          "type": "WebActivity",
-          "dependsOn": [],
-          "policy": {
-            "timeout": "0.12:00:00",
-            "retry": 1,
-            "retryIntervalInSeconds": 30,
-            "secureOutput": true,
-            "secureInput": true
-          },
-          "userProperties": [],
-          "typeProperties": {
-            "method": "GET",
-            "headers": {},
-            "url": "http://baidu.com"
-          }
-        },
-        {
-          "name": "Web3",
-          "description": "this is web3",
-          "type": "WebActivity",
-          "state": "Inactive",
-          "onInactiveMarkAs": "Succeeded",
-          "dependsOn": [
-            {
-              "activity": "Web2",
-              "dependencyConditions": [
-                "Completed"
-              ]
-            }
-          ],
-          "policy": {
-            "timeout": "0.12:00:00",
-            "retry": 0,
-            "retryIntervalInSeconds": 30,
-            "secureOutput": false,
-            "secureInput": false
-          },
-          "userProperties": [],
-          "typeProperties": {
-            "method": "GET",
-            "headers": {},
-            "url": "http://baidu.com"
-          }
-        },
-        {
           "name": "Notebook1",
           "description": "this is nb",
           "type": "DatabricksNotebook",
@@ -107,8 +41,151 @@
         "elapsedTimeMetric": {}
       },
       "annotations": [],
-      "lastPublishTime": "2024-11-22T03:49:17Z"
+      "lastPublishTime": "2024-11-30T14:26:54Z"
     },
-    "etag": "14003652-0000-1900-0000-673fff3d0000"
+    "etag": "6c00e007-0000-1900-0000-674b20ae0000"
+  },
+  {
+    "id": "/subscriptions/097597a0-5749-49fa-968c-e556a3ea8a76/resourceGroups/datafactory-rg923/providers/Microsoft.DataFactory/factories/chenxi-df/pipelines/pipeline_department1_1",
+    "name": "pipeline_department1_1",
+    "type": "Microsoft.DataFactory/factories/pipelines",
+    "properties": {
+      "description": "部门1_1的工作流",
+      "activities": [
+        {
+          "name": "Web3",
+          "type": "WebActivity",
+          "dependsOn": [],
+          "policy": {
+            "timeout": "0.12:00:00",
+            "retry": 0,
+            "retryIntervalInSeconds": 30,
+            "secureOutput": false,
+            "secureInput": false
+          },
+          "userProperties": [],
+          "typeProperties": {
+            "method": "GET",
+            "headers": {},
+            "url": "http://baidu.com"
+          }
+        }
+      ],
+      "policy": {
+        "elapsedTimeMetric": {}
+      },
+      "folder": {
+        "name": "department1/department1_1"
+      },
+      "annotations": [],
+      "lastPublishTime": "2024-11-30T14:26:54Z"
+    },
+    "etag": "6c00de07-0000-1900-0000-674b20ae0000"
+  },
+  {
+    "id": "/subscriptions/097597a0-5749-49fa-968c-e556a3ea8a76/resourceGroups/datafactory-rg923/providers/Microsoft.DataFactory/factories/chenxi-df/pipelines/main_flow",
+    "name": "main_flow",
+    "type": "Microsoft.DataFactory/factories/pipelines",
+    "properties": {
+      "description": "main workflow",
+      "activities": [
+        {
+          "name": "workflow1",
+          "type": "ExecutePipeline",
+          "dependsOn": [],
+          "policy": {
+            "secureInput": false
+          },
+          "userProperties": [],
+          "typeProperties": {
+            "pipeline": {
+              "referenceName": "parallel_activity",
+              "type": "PipelineReference"
+            },
+            "waitOnCompletion": true,
+            "parameters": {}
+          }
+        },
+        {
+          "name": "pipeline_department1_1",
+          "type": "ExecutePipeline",
+          "dependsOn": [
+            {
+              "activity": "workflow1",
+              "dependencyConditions": [
+                "Completed"
+              ]
+            },
+            {
+              "activity": "Web1",
+              "dependencyConditions": [
+                "Completed"
+              ]
+            }
+          ],
+          "policy": {
+            "secureInput": false
+          },
+          "userProperties": [],
+          "typeProperties": {
+            "pipeline": {
+              "referenceName": "pipeline_department1_1",
+              "type": "PipelineReference"
+            },
+            "waitOnCompletion": true,
+            "parameters": {}
+          }
+        },
+        {
+          "name": "Web1",
+          "type": "WebActivity",
+          "dependsOn": [],
+          "policy": {
+            "timeout": "0.12:00:00",
+            "retry": 0,
+            "retryIntervalInSeconds": 30,
+            "secureOutput": false,
+            "secureInput": false
+          },
+          "userProperties": [],
+          "typeProperties": {
+            "method": "GET",
+            "headers": {},
+            "url": "http://baidu.com"
+          }
+        },
+        {
+          "name": "Web2",
+          "type": "WebActivity",
+          "dependsOn": [
+            {
+              "activity": "pipeline_department1_1",
+              "dependencyConditions": [
+                "Completed"
+              ]
+            }
+          ],
+          "policy": {
+            "timeout": "0.12:00:00",
+            "retry": 0,
+            "retryIntervalInSeconds": 30,
+            "secureOutput": false,
+            "secureInput": false
+          },
+          "userProperties": [],
+          "typeProperties": {
+            "method": "GET",
+            "headers": {},
+            "url": "http://baidu.com"
+          }
+        }
+      ],
+      "policy": {
+        "elapsedTimeMetric": {}
+      },
+      "annotations": [],
+      "lastPublishTime": "2024-11-30T14:28:53Z"
+    },
+    "etag": "6c00b90a-0000-1900-0000-674b21250000"
   }
 ]

@@ -26,9 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class AdfConverter {
@@ -36,6 +34,7 @@ public class AdfConverter {
     public static final String ADD_PREFIX = "addPrefix";
     private final AdfPackage adfPackage;
     private final AdfConf adfConf;
+    private final Set<String> citableFlowIds = new HashSet<>();
 
     public AdfConverter(AdfPackage adfPackage, AdfConf adfConf) {
         this.adfPackage = adfPackage;
@@ -52,6 +51,9 @@ public class AdfConverter {
         for (Pipeline pipeline : pipelines) {
             Trigger trigger = triggers.getOrDefault(pipeline.getName(), null);
             flows.add(toWorkflow(pipeline, trigger));
+        }
+        for(SpecWorkflow flow : flows) {
+            flow.setCitable(citableFlowIds.contains(flow.getId()));
         }
         return flows;
     }
@@ -161,6 +163,7 @@ public class AdfConverter {
             String referencePipeline = activity.getTypeProperties().getPipeline().getReferenceName();
             String id = generateId(referencePipeline);
             subFlow.setOutput(id);
+            this.citableFlowIds.add(id);
             return subFlow;
         }
         return null;
